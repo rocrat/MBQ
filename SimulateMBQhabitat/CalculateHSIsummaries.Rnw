@@ -1,0 +1,28 @@
+\documentclass{article}
+
+\begin{document}
+
+<<getsimulatedHSIscores>>=
+sim1<-read.csv("C:\\Users\\dominic\\Documents\\Work\\Current Projects\\MBQ\\SimulateMBQhabitat\\pred1.csv")
+sim2<-read.csv("C:\\Users\\dominic\\Documents\\Work\\Current Projects\\MBQ\\SimulateMBQhabitat\\pred2.csv")
+sim3<-read.csv("C:\\Users\\dominic\\Documents\\Work\\Current Projects\\MBQ\\SimulateMBQhabitat\\pred3.csv")
+names(sim1)<-names(sim2)<-names(sim3)<-c("Suitability","Author")
+require(stringr)
+sim1$Author<-as.factor(str_trim(sim1$Author))
+sim2$Author<-as.factor(str_trim(sim2$Author))
+sim3$Author<-as.factor(str_trim(sim3$Author))
+@
+<<summarystats>>=
+t<-by(sim1,sim1$Author,var)
+t2<-by(sim2,sim2$Author,var)
+t3<-by(sim3,sim3$Author,var)
+
+s1<-by(sim1,sim1$Author,summary)
+s3<-by(sim2,sim2$Author,summary)
+s3<-by(sim3,sim3$Author,summary)
+
+rmat1<-matrix(c(s1[[1]][4],s1[[2]][4],s1[[3]][4],s1[[4]][4],s1[[5]][4],s1[[6]][4],s1[[7]][4],s1[[8]][4],s1[[9]][4],s1[[1]][1],s1[[2]][1],s1[[3]][1],s1[[4]][1],s1[[5]][1],s1[[6]][1],s1[[7]][1],s1[[8]][1],s1[[9]][1],s1[[1]][6],s1[[2]][6],s1[[3]][6],s1[[4]][6],s1[[5]][6],s1[[6]][6],s1[[7]][6],s1[[8]][6],s1[[9]][6],t[[1]][1,1],t[[2]][1,1],t[[3]][1,1],t[[4]][1,1],t[[5]][1,1],t[[6]][1,1],t[[7]][1,1],t[[8]][1,1],t[[9]][1,1]),9,4)
+rmat2<-matrix(c(s2[[1]][4],s2[[2]][4],s2[[3]][4],s2[[4]][4],s2[[5]][4],s2[[6]][4],s2[[7]][4],s2[[8]][4],s2[[9]][4],s2[[1]][1],s2[[2]][1],s2[[3]][1],s2[[4]][1],s2[[5]][1],s2[[6]][1],s2[[7]][1],s2[[8]][1],s2[[9]][1],s2[[1]][6],s2[[2]][6],s2[[3]][6],s2[[4]][6],s2[[5]][6],s2[[6]][6],s2[[7]][6],s2[[8]][6],s2[[9]][6],t2[[1]][1,1],t2[[2]][1,1],t2[[3]][1,1],t2[[4]][1,1],t2[[5]][1,1],t2[[6]][1,1],t2[[7]][1,1],t2[[8]][1,1],t2[[9]][1,1]),9,4)
+rmat3<-matrix(c(s3[[1]][4],s3[[2]][4],s3[[3]][4],s3[[4]][4],s3[[5]][4],s3[[6]][4],s3[[7]][4],s3[[8]][4],s3[[9]][4],s3[[1]][1],s3[[2]][1],s3[[3]][1],s3[[4]][1],s3[[5]][1],s3[[6]][1],s3[[7]][1],s3[[8]][1],s3[[9]][1],s3[[1]][6],s3[[2]][6],s3[[3]][6],s3[[4]][6],s3[[5]][6],s3[[6]][6],s3[[7]][6],s3[[8]][6],s3[[9]][6],t3[[1]][1,1],t3[[2]][1,1],t3[[3]][1,1],t3[[4]][1,1],t3[[5]][1,1],t3[[6]][1,1],t3[[7]][1,1],t3[[8]][1,1],t3[[9]][1,1]),9,4)
+@
+\end{document}

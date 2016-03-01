@@ -1,0 +1,272 @@
+\documentclass{article}
+
+\begin{document}
+
+<<MakeBetaLayer>>=
+set.seed(rpois(1,200))
+make.beta.layer<-function(rho,N,numpoints1,numpoints2,beta1,beta2,dist){
+  require(spdep)
+  require(akima)
+  require(ggplot2)
+  require(reshape)
+  x.coord<-runif(N,numpoints1,numpoints2)
+  y.coord<-runif(N,numpoints1,numpoints2)
+  points<-cbind(x.coord,y.coord)
+  e<-rbeta(N,beta1,beta2)
+  dnb<-dnearneigh(points,0,dist) #neighbourhood contiguity by distance
+  dsts<-nbdists(dnb,points) #spatial link distance measures
+  idw<-lapply(dsts,function(x) 1/x) #inverse of distance measures
+  lw<-nb2listw(dnb,glist=idw,style="W")
+  inv<-invIrW(lw,rho)
+  y<-inv%*%e
+  y2<-y-min(y)
+  d<-cbind(points,y2)
+  df<-as.data.frame(d)
+  names(df)<-c("x","y","GC")
+  df.grid<-with(df,interp(x,y,GC,xo=seq(0,100,length=100),yo=seq(0,100,length=100),duplicate="mean",linear=FALSE,extrap=TRUE))#make regular grid of values
+  df.grid.bounded<-pmax(pmin(df.grid[[3]],1),0)#censor interpolated values within beta distribution
+  df.m<-melt(df.grid.bounded)
+  names(df.m)<-c("x","y","GC")
+  p<-ggplot(df.m,aes(x=x,y=y,z=GC))
+  cp<-p+stat_contour()
+  return(list(df.m,cp))
+}
+@
+<<SimulateGrassCover>>=
+gc1<-make.beta.layer(.95,200,0,100,5,5,50)
+p<-gc1[[2]]
+p+stat_contour(aes(colour=..level..),binwidth=.1)
+gcdf<-gc1[[1]]
+@
+<<simulateTreeCover>>=
+tc1<-make.beta.layer(.95,200,0,100,5,5,50)
+tcp<-tc1[[2]]
+tcp+stat_contour(aes(colour=..level..),binwidth=.1)
+tcdf<-tc1[[1]]
+tcdf<-rename(tcdf,c(GC="TC"))
+@
+<<simulateForbCover>>=
+fc1<-make.beta.layer(.95,200,0,100,5,5,50)
+fcp<-fc1[[2]]
+fcp+stat_contour(aes(colour=..level..),binwidth=.1)
+fcdf<-fc1[[1]]
+fcdf<-rename(fcdf,c(GC="FC"))
+@
+<<simulateShrubCover>>=
+sc1<-make.beta.layer(.95,200,0,100,5,5,50)
+scp<-sc1[[2]]
+scp+stat_contour(aes(colour=..level..),binwidth=.1)
+scdf<-sc1[[1]]
+scdf<-rename(scdf,c(GC="SC"))
+@
+<<simulateBareGround>>=
+bg1<-make.beta.layer(.95,200,0,100,5,5,50)
+bgp<-bg1[[2]]
+bgp+stat_contour(aes(colour=..level..),binwidth=.1)
+bgdf<-bg1[[1]]
+bgdf<-rename(bgdf,c(GC="BG"))
+@
+<<simulateGrassDiversity>>=
+gd1<-make.beta.layer(.95,200,0,100,5,5,50)
+gdp<-gd1[[2]]
+gdp+stat_contour(aes(colour=..level..),binwidth=.1)
+gddf<-gd1[[1]]
+gddf<-rename(gddf,c(GC="GD"))
+@
+<<simulateForbDiversity>>=
+fd1<-make.beta.layer(.95,200,0,100,5,5,50)
+fdp<-fd1[[2]]
+fdp+stat_contour(aes(colour=..level..),binwidth=.1)
+fddf<-fd1[[1]]
+fddf<-rename(fddf,c(GC="FD"))
+@
+<<simulateShrubDiversity>>=
+sd1<-make.beta.layer(.95,200,0,100,5,5,50)
+sdp<-sd1[[2]]
+sdp+stat_contour(aes(colour=..level..),binwidth=.1)
+sddf<-sd1[[1]]
+sddf<-rename(sddf,c(GC="SD"))
+@
+<<simulateForbHeight>>=
+fh1<-make.beta.layer(.95,200,0,100,5,5,50)
+fhp<-fh1[[2]]
+fhp+stat_contour(aes(colour=..level..),binwidth=.1)
+fhdf<-fh1[[1]]
+fhdf<-rename(fhdf,c(GC="FH"))
+@
+<<simulateShrubHeight>>=
+sh1<-make.beta.layer(.95,200,0,100,5,5,50)
+shp<-sh1[[2]]
+shp+stat_contour(aes(colour=..level..),binwidth=.1)
+shdf<-sh1[[1]]
+shdf<-rename(shdf,c(GC="SH"))
+@
+<<simulateGrassHeightforcover>>=
+ghc1<-make.beta.layer(.95,200,0,100,5,5,50)
+ghcp<-ghc1[[2]]
+ghcp+stat_contour(aes(colour=..level..),binwidth=.1)
+ghcdf<-ghc1[[1]]
+ghcdf<-rename(ghcdf,c(GC="GHc"))
+@
+<<SimulateGrassHopperAbundance>>=
+gr1<-make.beta.layer(.95,200,0,100,5,5,50)
+grp<-gr1[[2]]
+grp+stat_contour(aes(colour=..level..),binwidth=.1)
+grdf<-gr1[[1]]
+grdf<-rename(grdf,c(GC="GR"))
+@
+<<SimulateNestSiteAbundance>>=
+nc1<-make.beta.layer(.95,200,0,100,5,5,50)
+ncp<-nc1[[2]]
+ncp+stat_contour(aes(colour=..level..),binwidth=.1)
+ncdf<-nc1[[1]]
+ncdf<-rename(ncdf,c(GC="NC"))
+@
+<<SimulatePerennialGrassCover>>=
+gcp1<-make.beta.layer(.95,200,0,100,5,5,50)
+gcpp<-gcp1[[2]]
+gcpp+stat_contour(aes(colour=..level..),binwidth=.1)
+gcpdf<-gcp1[[1]]
+gcpdf<-rename(gcpdf,c(GC="GCp"))
+@
+<<SimulateAnnualGrassCover>>=
+gca1<-make.beta.layer(.95,200,0,100,5,5,50)
+gcap<-gca1[[2]]
+gcap+stat_contour(aes(colour=..level..),binwidth=.1)
+gcadf<-gca1[[1]]
+gcadf<-rename(gcadf,c(GC="GCa"))
+@
+<<SimulatePerennialGrassDiversity>>=
+gdp1<-make.beta.layer(.95,200,0,100,5,5,50)
+gdpp<-gdp1[[2]]
+gdpp+stat_contour(aes(colour=..level..),binwidth=.1)
+gdpdf<-gdp1[[1]]
+gdpdf<-rename(gdpdf,c(GC="GDp"))
+@
+<<SimulateAnnualGrassdiversity>>=
+gda1<-make.beta.layer(.95,200,0,100,5,5,50)
+gdap<-gda1[[2]]
+gdap+stat_contour(aes(colour=..level..),binwidth=.1)
+gdadf<-gda1[[1]]
+gdadf<-rename(gdadf,c(GC="GDa"))
+@
+<<simulateSpringForbHeight>>=
+fhs<-make.beta.layer(.95,200,0,100,5,5,50)
+fhsp<-fhs[[2]]
+fhsp+stat_contour(aes(colour=..level..),binwidth=.1)
+fhsdf<-fhs[[1]]
+fhsdf<-rename(fhsdf,c(GC="FHs"))
+@
+<<simulatefallForbHeight>>=
+fhf<-make.beta.layer(.95,200,0,100,5,5,50)
+fhfp<-fhf[[2]]
+fhfp+stat_contour(aes(colour=..level..),binwidth=.1)
+fhfdf<-fhf[[1]]
+fhfdf<-rename(fhfdf,c(GC="FHf"))
+@
+<<simulateTreeCoverinArroyo>>=
+tca<-make.beta.layer(.95,200,0,100,5,5,50)
+tcap<-tca[[2]]
+tcap+stat_contour(aes(colour=..level..),binwidth=.1)
+tcadf<-tca[[1]]
+tcadf<-rename(tcadf,c(GC="TCa"))
+@
+<<simulateSpringForbCover>>=
+fcs<-make.beta.layer(.95,200,0,100,5,5,50)
+fcsp<-fcs[[2]]
+fcsp+stat_contour(aes(colour=..level..),binwidth=.1)
+fcsdf<-fcs[[1]]
+fcsdf<-rename(fcsdf,c(GC="FCs"))
+@
+<<simulateGrassCoverforVisObstruction>>=
+gcv<-make.beta.layer(.95,200,0,100,5,5,50)#probably need to correlate this with grass canopy cover to be realistic with the final models
+gcvp<-gcv[[2]]
+gcvp+stat_contour(aes(colour=..level..),binwidth=.1)
+gcvdf<-gcv[[1]]
+gcvdf<-rename(gcvdf,c(GC="GCv"))
+@
+<<simulateGrassBasalArea>>=
+gcb<-make.beta.layer(.95,200,0,100,5,5,50)#should be correlated with visual obstruction
+gcbp<-gcb[[2]]
+gcbp+stat_contour(aes(colour=..level..),binwidth=.1)
+gcbdf<-gcb[[1]]
+gcbdf<-rename(gcbdf,c(GC="GCb"))
+@
+<<SimulateHalfshrubcover>>=
+hsc<-make.beta.layer(.95,200,0,100,5,5,50)
+hscp<-hsc[[2]]
+hscp+stat_contour(aes(colour=..level..),binwidth=.1)
+hscdf<-hsc[[1]]
+hscdf<-rename(hscdf,c(GC="HSC"))
+@
+<<SimulateEllisStructureDiversity>>=
+StrD<-make.beta.layer(.95,200,0,100,5,5,50)
+strdp<-StrD[[2]]
+strdp+stat_contour(aes(colour=..level..),binwidth=.1)
+strddf<-StrD[[1]]
+strddf<-rename(strddf,c(GC="StrD"))
+@
+<<combineLayers>>=
+sim1<-merge(bgdf,fcdf)
+rm(bgdf,fcdf,bg,fc)
+sim1<-merge(sim1,fddf)
+rm(fddf,fd)
+sim1<-merge(sim1,fhdf)
+rm(fhdf,fh)
+sim1<-merge(sim1,gcdf)
+rm(gcdf,gc)
+sim1<-merge(sim1,gddf)
+rm(gddf,gd)
+sim1<-merge(sim1,ghcdf)
+rm(ghcdf,ghc)
+sim1<-merge(sim1,scdf)
+rm(scdf)
+sim1<-merge(sim1,sddf)
+rm(sddf)
+sim1<-merge(sim1,shdf)
+rm(shdf,sh)
+sim1<-merge(sim1,tcdf)
+rm(tcdf,tc)
+sim1<-merge(sim1,grdf)
+rm(grdf,gr)
+sim1<-merge(sim1,ncdf)
+rm(ncdf,nc)
+sim1<-merge(sim1,gcpdf)
+rm(gcpdf,gcp)
+sim1<-merge(sim1,gcadf)
+rm(gcadf,gca)
+sim1<-merge(sim1,gdpdf)
+rm(gdpdf,gdp)
+sim1<-merge(sim1,gdadf)
+rm(gdadf,gda)
+sim1<-merge(sim1,fhsdf)
+rm(fhsdf,fhs)
+sim1<-merge(sim1,fhfdf)
+rm(fhfdf,fhf)
+sim1<-merge(sim1,tcadf)
+rm(tcadf,tca)
+sim1<-merge(sim1,fcsdf)
+rm(fcsdf,fcs)
+sim1<-merge(sim1,gcvdf)
+rm(gcvdf,gcv)
+sim1<-merge(sim1,gcbdf)
+rm(gcbdf,gcb)
+sim1<-merge(sim1,hscdf)
+rm(hscdf,hsc)
+sim1<-merge(sim1,strddf)
+rm(strddf,StrD)
+gc()
+@
+
+<<SimulateTotalCover>>=
+for(i in 1:length(sim1$x)){
+  sim1$TotalC<-with(sim1,(((GC+GCv+GCb)/3)*SC)^.5)
+}
+@
+<<writeSimulationToFile>>=
+require(MASS)
+write.matrix(sim1,file="C:\\Users\\dominic\\Documents\\Work\\Current Projects\\MBQ\\SimulateMBQhabitat\\suit3.csv",sep=",")
+@
+
+
+\end{document}

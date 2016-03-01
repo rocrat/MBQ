@@ -1,0 +1,101 @@
+###################################################
+## Simulating spatially autocorrelated 2D surface
+###################################################
+library(gstat) ##for variogram models
+
+####################################################################################################
+## A function to simulate data
+## function parameter definitions
+## n: the number of rows and columns in the matrix representing the 2D surface
+## my.nugget: the variogram nugget which equals the y-intercept of the semivariogram, often 0
+## my.psill: the partial sill, the semivariance of uncorrelated points
+## my.range: the distance within which points are autocorrelated
+## rtrn = d or m, d if you want the function to return a dataframe object or m if you want a matrix
+####################################################################################################
+  sim = function(n, my.nugget, my.psill, my.range, rtrn = m){
+    nn = n*n #dimensions of the distance and covariance matrix
+    
+    #############################################################################################
+    ##create a distance matrix
+    ##the distance matrix stores the distance between all the cells in 2D surface
+    ##for example the first row contains the distance between the first cell and all other cells
+    #############################################################################################
+      
+      ##Create matrices with all columns have the same value (Mx) and all rows have the same value (My)
+        Mx=matrix(seq(n),nrow=n,ncol=n,byrow=T)
+        My=matrix(seq(n),nrow=n,ncol=n,byrow=F)
+      
+      ##Calculate pairwise distances among all locations
+        ##y-direction
+          MMy=abs(matrix(c(Mx),nrow=nn,ncol=nn,byrow=F)
+                  -matrix(c(Mx),nrow=nn,ncol=nn,byrow=T))
+        
+        ##x-direction
+          MMx=abs(matrix(c(My),nrow=nn,ncol=nn,byrow=F)
+                  -matrix(c(My),nrow=nn,ncol=nn,byrow=T))
+    
+        #pythagreon therom to calculate pairwise distances
+          MMdist=sqrt(MMx^2+MMy^2) #pythagreon therom to calculate pairwise distances
+    
+    #####################################################################
+    ##create and decompose a covariance matrix from the distance matrix 
+    #####################################################################
+      ##create a variogram model using the parameters passed to the function
+        my.vgm = vgm(my.psill, "Sph", my.range, my.nugget)
+      
+      ##get the covariances associated with each distance of the distance matrix
+        v = variogramLine(my.vgm,dist_vector=c(MMdist),covariance=T)$gamma
+    
+      ##create the covariance matrix
+        MM=matrix(v,nrow=nn,ncol=nn)
+                  
+      #decompose and transpose the variance-covariance matrix to get a lower-triangular matrix
+        LL=t(chol(MM))
+  
+    ####################              
+    ##simulate the data
+    ####################
+      ##create a vector of random normal deviates
+        r = rnorm(nn,0,1)
+      
+      ##multiply the random vector by the lower-triangular matrix
+      ##to get an autocorrelated vecotor
+        sav = LL%*%rnorm(nn,0,1)
+                  
+      ##make the autocorrelated vector a matrix
+        z=matrix(sav,nrow=n,ncol=n,byrow=F)									
+  
+    ##################
+    ##return the data
+    ##################
+     ##matrix
+      if(rtrn == "m"){
+        return(z)
+      }
+    
+      if(rtrn == "d"){
+        d = data.frame(x = c(Mx), y = c(My), z = c(z))
+        return(d)
+      }
+}
+
+#######################################################
+## Using the function and visualizing the data
+## increase the range to increase the autocorrelation
+#######################################################
+  n = 25
+  
+  ##return a matrix
+    my.sim = sim(n=n,my.psill = 1, my.range = 5, rtrn = "m")
+    image(seq(n),seq(n), my.sim)
+
+  ##return a dataframe and make it a raster object
+    library(sp)
+    library(raster)
+    
+    my.sim = sim(n=n,my.psill = 1, my.range = 5, rtrn = "d")
+    coordinates(my.sim) = c("x","y")
+    gridded(my.sim) = T
+    r.sim = raster(my.sim)
+    plot(r.sim)
+

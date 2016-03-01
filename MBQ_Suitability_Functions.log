@@ -1,0 +1,782 @@
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2012.8.22)  14 SEP 2012 15:33
+entering extended mode
+**MBQ_Suitability_Functions.tex
+
+("C:\Users\dominic\Documents\Work\Current Projects\MBQ\MBQ_Suitability_Function
+s.tex"
+LaTeX2e <2011/06/27>
+Babel <v3.8m> and hyphenation patterns for english, afrikaans, ancientgreek, ar
+abic, armenian, assamese, basque, bengali, bokmal, bulgarian, catalan, coptic, 
+croatian, czech, danish, dutch, esperanto, estonian, farsi, finnish, french, ga
+lician, german, german-x-2009-06-19, greek, gujarati, hindi, hungarian, iceland
+ic, indonesian, interlingua, irish, italian, kannada, kurmanji, lao, latin, lat
+vian, lithuanian, malayalam, marathi, mongolian, mongolianlmc, monogreek, ngerm
+an, ngerman-x-2009-06-19, nynorsk, oriya, panjabi, pinyin, polish, portuguese, 
+romanian, russian, sanskrit, serbian, slovak, slovenian, spanish, swedish, swis
+sgerman, tamil, telugu, turkish, turkmen, ukenglish, ukrainian, uppersorbian, u
+senglishmax, welsh, loaded.
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\base\article.cls"
+Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\base\size12.clo"
+File: size12.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\graphicx.sty"
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\keyval.sty"
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\graphics.sty"
+Package: graphics 2009/02/05 v1.0o Standard LaTeX Graphics (DPC,SPQR)
+
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\trig.sty"
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\00miktex\graphics.cfg"
+File: graphics.cfg 2007/01/18 v1.5 graphics configuration of teTeX/TeXLive
+)
+Package graphics Info: Driver file: pdftex.def on input line 91.
+
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\pdftex-def\pdftex.def"
+File: pdftex.def 2011/05/27 v0.06d Graphics/color for pdfTeX
+
+("C:\Program Files (x86)\MiKTeX 2.9\tex\generic\oberdiek\infwarerr.sty"
+Package: infwarerr 2010/04/08 v1.3 Providing info/warning/error messages (HO)
+)
+("C:\Program Files (x86)\MiKTeX 2.9\tex\generic\oberdiek\ltxcmds.sty"
+Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
+)
+\Gread@gobject=\count87
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+)
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\color.sty"
+Package: color 2005/11/14 v1.0j Standard LaTeX Color (DPC)
+
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\00miktex\color.cfg"
+File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
+)
+Package color Info: Driver file: pdftex.def on input line 130.
+)
+(C:\Users\dominic\AppData\Roaming\MiKTeX\2.9\tex\latex\upquote\upquote.sty
+Package: upquote 2012/04/19 v1.3 upright-quote and grave-accent glyphs in verba
+tim
+)
+(C:\Users\dominic\AppData\Roaming\MiKTeX\2.9\tex\latex\framed\framed.sty
+Package: framed 2011/10/22 v 0.96: framed or shaded text with page breaks
+\OuterFrameSep=\skip43
+\fb@frw=\dimen105
+\fb@frh=\dimen106
+\FrameRule=\dimen107
+\FrameSep=\dimen108
+)
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\base\alltt.sty"
+Package: alltt 1997/06/16 v2.0g defines alltt environment
+)
+("C:\Users\dominic\Documents\Work\Current Projects\MBQ\MBQ_Suitability_Function
+s.aux")
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 106.
+LaTeX Font Info:    ... okay on input line 106.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 106.
+LaTeX Font Info:    ... okay on input line 106.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 106.
+LaTeX Font Info:    ... okay on input line 106.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 106.
+LaTeX Font Info:    ... okay on input line 106.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 106.
+LaTeX Font Info:    ... okay on input line 106.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 106.
+LaTeX Font Info:    ... okay on input line 106.
+
+(C:\Users\dominic\AppData\Roaming\MiKTeX\2.9\tex\context\base\supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count88
+\scratchdimen=\dimen109
+\scratchbox=\box26
+\nofMPsegments=\count89
+\nofMParguments=\count90
+\everyMPshowfont=\toks15
+\MPscratchCnt=\count91
+\MPscratchDim=\dimen110
+\MPnumerator=\count92
+\makeMPintoPDFobject=\count93
+\everyMPtoPDFconversion=\toks16
+)
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <14.4> on input line 107.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 107.
+
+Underfull \hbox (badness 10000) in paragraph at lines 114--115
+
+ []
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 117.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 117.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 117.
+! Illegal unit of measure (pt inserted).
+<to be read again> 
+                   \relax 
+l.118 $
+       Description
+Dimensions can be in units of em, ex, in, pt, pc,
+cm, mm, dd, cc, nd, nc, bp, or sp; but yours is a new one!
+I'll assume that you meant to say pt, for printer's points.
+To recover gracefully from this error, it's best to
+delete the erroneous units; e.g., type `2' to delete
+two letters. (See Chapter 27 of The TeXbook.)
+
+
+Overfull \hbox (178.22758pt too wide) in paragraph at lines 118--120
+[]$\OML/cmm/m/it/12 Descriptiondescriptiondescription$| 
+ []
+
+
+! LaTeX Error: Not in outer par mode.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.122 \begin
+            {knitrout}
+You've lost some text.  Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+! Undefined control sequence.
+\@xfloat ...@fltovf \fi \global \setbox \@currbox 
+                                                  \color@vbox \normalcolor \...
+l.122 \begin
+            {knitrout}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   \vbox 
+l.122 \begin
+            {knitrout}
+A number should have been here; I inserted `0'.
+(If you can't figure out why I needed to see a number,
+look up `weird error' in the index to The TeXbook.)
+
+Package color Info: Redefining color shadecolor on input line 123.
+<figure/Ellis_Forb_diversity.pdf, id=1, 289.08pt x 289.08pt>
+File: figure/Ellis_Forb_diversity.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Forb_diversity.pdf>
+Package pdftex.def Info: figure/Ellis_Forb_diversity.pdf used on input line 123
+.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+
+! Illegal unit of measure (pt inserted).
+<to be read again> 
+                   \relax 
+l.127 D
+       escription & Equation &
+Dimensions can be in units of em, ex, in, pt, pc,
+cm, mm, dd, cc, nd, nc, bp, or sp; but yours is a new one!
+I'll assume that you meant to say pt, for printer's points.
+To recover gracefully from this error, it's best to
+delete the erroneous units; e.g., type `2' to delete
+two letters. (See Chapter 27 of The TeXbook.)
+
+
+Overfull \hbox (57.1494pt too wide) in paragraph at lines 127--127
+[]\OT1/cmr/m/n/12 Description| 
+ []
+
+Package color Info: Redefining color shadecolor on input line 129.
+<figure/Ellis_Grass_diversity.pdf, id=2, 289.08pt x 289.08pt>
+File: figure/Ellis_Grass_diversity.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Grass_diversity.pdf>
+Package pdftex.def Info: figure/Ellis_Grass_diversity.pdf used on input line 12
+9.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+
+! Illegal unit of measure (pt inserted).
+<to be read again> 
+                   \relax 
+l.133 D
+       escription & Equation &
+Dimensions can be in units of em, ex, in, pt, pc,
+cm, mm, dd, cc, nd, nc, bp, or sp; but yours is a new one!
+I'll assume that you meant to say pt, for printer's points.
+To recover gracefully from this error, it's best to
+delete the erroneous units; e.g., type `2' to delete
+two letters. (See Chapter 27 of The TeXbook.)
+
+
+Overfull \hbox (57.1494pt too wide) in paragraph at lines 133--133
+[]\OT1/cmr/m/n/12 Description| 
+ []
+
+Package color Info: Redefining color shadecolor on input line 135.
+<figure/Ellis_Shrub_diversity.pdf, id=3, 289.08pt x 289.08pt>
+File: figure/Ellis_Shrub_diversity.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Shrub_diversity.pdf>
+Package pdftex.def Info: figure/Ellis_Shrub_diversity.pdf used on input line 13
+5.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [1
+
+{C:/Users/dominic/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+Package color Info: Redefining color shadecolor on input line 144.
+
+<figure/Ellis_Forb_Height.pdf, id=11, 289.08pt x 289.08pt> [2 <C:/Users/dominic
+/Documents/Work/Current Projects/MBQ/figure/Ellis_Grass_diversity.pdf> <C:/User
+s/dominic/Documents/Work/Current Projects/MBQ/figure/Ellis_Shrub_diversity.pdf>
+]
+File: figure/Ellis_Forb_Height.pdf Graphic file (type pdf)
+ <use figure/Ellis_Forb_Height.pdf>
+Package pdftex.def Info: figure/Ellis_Forb_Height.pdf used on input line 144.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 149.
+
+<figure/Ellis_Shrub_Height.pdf, id=26, 289.08pt x 289.08pt>
+File: figure/Ellis_Shrub_Height.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Shrub_Height.pdf>
+Package pdftex.def Info: figure/Ellis_Shrub_Height.pdf used on input line 149.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [3 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Ellis_Forb_Hei
+ght.pdf>]
+Package color Info: Redefining color shadecolor on input line 154.
+
+<figure/Ellis_Grass_Cover1.pdf, id=35, 289.08pt x 289.08pt>
+File: figure/Ellis_Grass_Cover1.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Grass_Cover1.pdf>
+Package pdftex.def Info: figure/Ellis_Grass_Cover1.pdf used on input line 154.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+
+<figure/Ellis_Grass_Cover2.pdf, id=36, 289.08pt x 289.08pt>
+File: figure/Ellis_Grass_Cover2.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Grass_Cover2.pdf>
+Package pdftex.def Info: figure/Ellis_Grass_Cover2.pdf used on input line 154.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+
+<figure/Ellis_Grass_Cover3.pdf, id=37, 289.08pt x 289.08pt>
+File: figure/Ellis_Grass_Cover3.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Grass_Cover3.pdf>
+Package pdftex.def Info: figure/Ellis_Grass_Cover3.pdf used on input line 154.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+
+Overfull \hbox (111.01466pt too wide) in paragraph at lines 154--156
+[] []
+ []
+
+[4 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Ellis_Shrub_Hei
+ght.pdf>]
+Package color Info: Redefining color shadecolor on input line 159.
+ <figure/Ellis_Tree_Cover.pdf, id=46, 289.08pt x 289.08pt>
+File: figure/Ellis_Tree_Cover.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Tree_Cover.pdf>
+Package pdftex.def Info: figure/Ellis_Tree_Cover.pdf used on input line 159.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [5 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Ellis_Grass_Co
+ver1.pdf> <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Ellis_Gr
+ass_Cover2.pdf> <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/El
+lis_Grass_Cover3.pdf>]
+Package color Info: Redefining color shadecolor on input line 164.
+
+<figure/Ellis_Grass_Height.pdf, id=65, 289.08pt x 289.08pt>
+File: figure/Ellis_Grass_Height.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Grass_Height.pdf>
+Package pdftex.def Info: figure/Ellis_Grass_Height.pdf used on input line 164.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 169.
+
+<figure/Ellis_Structural_Diversity.pdf, id=66, 289.08pt x 289.08pt> [6 <C:/User
+s/dominic/Documents/Work/Current Projects/MBQ/figure/Ellis_Tree_Cover.pdf> <C:/
+Users/dominic/Documents/Work/Current Projects/MBQ/figure/Ellis_Grass_Height.pdf
+>]
+File: figure/Ellis_Structural_Diversity.pdf Graphic file (type pdf)
+ <use figure/Ellis_Structural_Diversity.pdf>
+Package pdftex.def Info: figure/Ellis_Structural_Diversity.pdf used on input li
+ne 169.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 174.
+
+<figure/Ellis_Total_Cover1.pdf, id=80, 289.08pt x 289.08pt>
+File: figure/Ellis_Total_Cover1.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Total_Cover1.pdf>
+Package pdftex.def Info: figure/Ellis_Total_Cover1.pdf used on input line 174.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+
+<figure/Ellis_Total_Cover2.pdf, id=81, 289.08pt x 289.08pt>
+File: figure/Ellis_Total_Cover2.pdf Graphic file (type pdf)
+
+<use figure/Ellis_Total_Cover2.pdf>
+Package pdftex.def Info: figure/Ellis_Total_Cover2.pdf used on input line 174.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+
+Overfull \hbox (111.01466pt too wide) in paragraph at lines 174--176
+[] []
+ []
+
+[7 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Ellis_Structura
+l_Diversity.pdf>]
+Package color Info: Redefining color shadecolor on input line 181.
+
+<figure/Goodwin_Forb_Diversity.pdf, id=91, 289.08pt x 289.08pt>
+File: figure/Goodwin_Forb_Diversity.pdf Graphic file (type pdf)
+
+<use figure/Goodwin_Forb_Diversity.pdf>
+Package pdftex.def Info: figure/Goodwin_Forb_Diversity.pdf used on input line 1
+81.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+
+
+! LaTeX Error: There's no line here to end.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.185 \\s
+         ubsubsection{simple quadratic}
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+[8 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Ellis_Total_Cov
+er1.pdf> <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Ellis_Tot
+al_Cover2.pdf>]
+Package color Info: Redefining color shadecolor on input line 187.
+
+<figure/Goodwin_Forb_Diversity_alt.pdf, id=105, 289.08pt x 289.08pt>
+File: figure/Goodwin_Forb_Diversity_alt.pdf Graphic file (type pdf)
+
+<use figure/Goodwin_Forb_Diversity_alt.pdf>
+Package pdftex.def Info: figure/Goodwin_Forb_Diversity_alt.pdf used on input li
+ne 187.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 193.
+
+<figure/Goodwin_Forb_Cover_AZ.pdf, id=106, 289.08pt x 289.08pt> [9 <C:/Users/do
+minic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Forb_Diversity.pdf> <C
+:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Forb_Diversi
+ty_alt.pdf>]
+File: figure/Goodwin_Forb_Cover_AZ.pdf Graphic file (type pdf)
+ <use figure/Goodwin_Forb_Cover_AZ.pdf>
+Package pdftex.def Info: figure/Goodwin_Forb_Cover_AZ.pdf used on input line 19
+3.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 198.
+
+<figure/Goodwin_Forb_Cover_MX.pdf, id=120, 289.08pt x 289.08pt>
+File: figure/Goodwin_Forb_Cover_MX.pdf Graphic file (type pdf)
+
+<use figure/Goodwin_Forb_Cover_MX.pdf>
+Package pdftex.def Info: figure/Goodwin_Forb_Cover_MX.pdf used on input line 19
+8.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [10 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Forb_
+Cover_AZ.pdf>]
+Package color Info: Redefining color shadecolor on input line 204.
+
+<figure/Goodwin_Shrub_Cover_AZ.pdf, id=129, 289.08pt x 289.08pt>
+File: figure/Goodwin_Shrub_Cover_AZ.pdf Graphic file (type pdf)
+
+<use figure/Goodwin_Shrub_Cover_AZ.pdf>
+Package pdftex.def Info: figure/Goodwin_Shrub_Cover_AZ.pdf used on input line 2
+04.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 209.
+
+<figure/Goodwin_Shrub_Cover_MX.pdf, id=130, 289.08pt x 289.08pt> [11 <C:/Users/
+dominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Forb_Cover_MX.pdf> <
+C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Shrub_Cover
+_AZ.pdf>]
+File: figure/Goodwin_Shrub_Cover_MX.pdf Graphic file (type pdf)
+ <use figure/Goodwin_Shrub_Cover_MX.pdf>
+Package pdftex.def Info: figure/Goodwin_Shrub_Cover_MX.pdf used on input line 2
+09.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 215.
+
+<figure/Goodwin_Grass-Diversity_MX.pdf, id=144, 289.08pt x 289.08pt>
+File: figure/Goodwin_Grass-Diversity_MX.pdf Graphic file (type pdf)
+
+<use figure/Goodwin_Grass-Diversity_MX.pdf>
+Package pdftex.def Info: figure/Goodwin_Grass-Diversity_MX.pdf used on input li
+ne 215.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [12 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Shrub
+_Cover_MX.pdf>]
+Package color Info: Redefining color shadecolor on input line 220.
+
+<figure/Goodwin_Grass-Diversity_AZ.pdf, id=153, 289.08pt x 289.08pt>
+File: figure/Goodwin_Grass-Diversity_AZ.pdf Graphic file (type pdf)
+
+<use figure/Goodwin_Grass-Diversity_AZ.pdf>
+Package pdftex.def Info: figure/Goodwin_Grass-Diversity_AZ.pdf used on input li
+ne 220.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 226.
+
+<figure/Goodwin_Grass_Cover_MX.pdf, id=154, 289.08pt x 289.08pt> [13 <C:/Users/
+dominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Grass-Diversity_MX.p
+df> <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Grass-
+Diversity_AZ.pdf>]
+File: figure/Goodwin_Grass_Cover_MX.pdf Graphic file (type pdf)
+ <use figure/Goodwin_Grass_Cover_MX.pdf>
+Package pdftex.def Info: figure/Goodwin_Grass_Cover_MX.pdf used on input line 2
+26.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 231.
+
+<figure/Goodwin_Grass_Cover_AZ.pdf, id=169, 289.08pt x 289.08pt>
+File: figure/Goodwin_Grass_Cover_AZ.pdf Graphic file (type pdf)
+
+<use figure/Goodwin_Grass_Cover_AZ.pdf>
+Package pdftex.def Info: figure/Goodwin_Grass_Cover_AZ.pdf used on input line 2
+31.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [14 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Grass
+_Cover_MX.pdf>]
+Package color Info: Redefining color shadecolor on input line 237.
+
+<figure/Goodwin_Tree_Cover_MX.pdf, id=178, 289.08pt x 289.08pt>
+File: figure/Goodwin_Tree_Cover_MX.pdf Graphic file (type pdf)
+
+<use figure/Goodwin_Tree_Cover_MX.pdf>
+Package pdftex.def Info: figure/Goodwin_Tree_Cover_MX.pdf used on input line 23
+7.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 242.
+
+<figure/Goodwin_Tree_Cover_AZ.pdf, id=179, 289.08pt x 289.08pt> [15 <C:/Users/d
+ominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Grass_Cover_AZ.pdf> <
+C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Tree_Cover_
+MX.pdf>]
+File: figure/Goodwin_Tree_Cover_AZ.pdf Graphic file (type pdf)
+ <use figure/Goodwin_Tree_Cover_AZ.pdf>
+Package pdftex.def Info: figure/Goodwin_Tree_Cover_AZ.pdf used on input line 24
+2.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 248.
+
+<figure/Sally-Dan_Forb_Diversity.pdf, id=193, 289.08pt x 289.08pt>
+File: figure/Sally-Dan_Forb_Diversity.pdf Graphic file (type pdf)
+
+<use figure/Sally-Dan_Forb_Diversity.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Forb_Diversity.pdf used on input line
+ 248.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [16 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Goodwin_Tree_
+Cover_AZ.pdf>]
+Package color Info: Redefining color shadecolor on input line 254.
+
+<figure/Sally-Dan_Forb_Height_spring.pdf, id=202, 289.08pt x 289.08pt>
+File: figure/Sally-Dan_Forb_Height_spring.pdf Graphic file (type pdf)
+
+<use figure/Sally-Dan_Forb_Height_spring.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Forb_Height_spring.pdf used on input 
+line 254.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 259.
+
+<figure/Sally-Dan_Forb_Height_fall.pdf, id=203, 289.08pt x 289.08pt> [17 <C:/Us
+ers/dominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_Forb_Diversity
+.pdf> <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_Fo
+rb_Height_spring.pdf>]
+File: figure/Sally-Dan_Forb_Height_fall.pdf Graphic file (type pdf)
+ <use figure/Sally-Dan_Forb_Height_fall.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Forb_Height_fall.pdf used on input li
+ne 259.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 265.
+
+<figure/Sally-Dan_Forb_Cover_Fall.pdf, id=217, 289.08pt x 289.08pt>
+File: figure/Sally-Dan_Forb_Cover_Fall.pdf Graphic file (type pdf)
+
+<use figure/Sally-Dan_Forb_Cover_Fall.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Forb_Cover_Fall.pdf used on input lin
+e 265.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [18 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_For
+b_Height_fall.pdf>]
+Package color Info: Redefining color shadecolor on input line 270.
+
+<figure/Sally-Dan_Forb_Cover_spring.pdf, id=226, 289.08pt x 289.08pt>
+File: figure/Sally-Dan_Forb_Cover_spring.pdf Graphic file (type pdf)
+
+<use figure/Sally-Dan_Forb_Cover_spring.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Forb_Cover_spring.pdf used on input l
+ine 270.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 276.
+
+<figure/Dan_Shrub_Cover.pdf, id=227, 289.08pt x 289.08pt> [19 <C:/Users/dominic
+/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_Forb_Cover_Fall.pdf> <C:/
+Users/dominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_Forb_Cover_s
+pring.pdf>]
+File: figure/Dan_Shrub_Cover.pdf Graphic file (type pdf)
+ <use figure/Dan_Shrub_Cover.pdf>
+Package pdftex.def Info: figure/Dan_Shrub_Cover.pdf used on input line 276.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 281.
+
+<figure/Sally_Shrub_Cover.pdf, id=242, 289.08pt x 289.08pt>
+File: figure/Sally_Shrub_Cover.pdf Graphic file (type pdf)
+
+<use figure/Sally_Shrub_Cover.pdf>
+Package pdftex.def Info: figure/Sally_Shrub_Cover.pdf used on input line 281.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [20 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Dan_Shrub_Cov
+er.pdf>]
+Package color Info: Redefining color shadecolor on input line 286.
+
+<figure/Sally-Dan_Shrub_Height.pdf, id=251, 289.08pt x 289.08pt>
+File: figure/Sally-Dan_Shrub_Height.pdf Graphic file (type pdf)
+
+<use figure/Sally-Dan_Shrub_Height.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Shrub_Height.pdf used on input line 2
+86.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 292.
+
+<figure/Sally-Dan_Grass_Diversity_p.pdf, id=252, 289.08pt x 289.08pt> [21 <C:/U
+sers/dominic/Documents/Work/Current Projects/MBQ/figure/Sally_Shrub_Cover.pdf> 
+<C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_Shrub_He
+ight.pdf>]
+File: figure/Sally-Dan_Grass_Diversity_p.pdf Graphic file (type pdf)
+ <use figure/Sally-Dan_Grass_Diversity_p.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Grass_Diversity_p.pdf used on input l
+ine 292.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 297.
+
+<figure/Sally-Dan_Grass_Diversity_a.pdf, id=266, 289.08pt x 289.08pt>
+File: figure/Sally-Dan_Grass_Diversity_a.pdf Graphic file (type pdf)
+
+<use figure/Sally-Dan_Grass_Diversity_a.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Grass_Diversity_a.pdf used on input l
+ine 297.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [22 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_Gra
+ss_Diversity_p.pdf>]
+Package color Info: Redefining color shadecolor on input line 303.
+
+<figure/Sally-Dan_Grass_Cover_p.pdf, id=275, 289.08pt x 289.08pt>
+File: figure/Sally-Dan_Grass_Cover_p.pdf Graphic file (type pdf)
+
+<use figure/Sally-Dan_Grass_Cover_p.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Grass_Cover_p.pdf used on input line 
+303.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 308.
+
+<figure/Sally-Dan_Grass_Cover_a.pdf, id=276, 289.08pt x 289.08pt> [23 <C:/Users
+/dominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_Grass_Diversity_a
+.pdf> <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_Gr
+ass_Cover_p.pdf>]
+File: figure/Sally-Dan_Grass_Cover_a.pdf Graphic file (type pdf)
+ <use figure/Sally-Dan_Grass_Cover_a.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Grass_Cover_a.pdf used on input line 
+308.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 314.
+
+<figure/Dan_Grass_Height.pdf, id=290, 289.08pt x 289.08pt>
+File: figure/Dan_Grass_Height.pdf Graphic file (type pdf)
+
+<use figure/Dan_Grass_Height.pdf>
+Package pdftex.def Info: figure/Dan_Grass_Height.pdf used on input line 314.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [24 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_Gra
+ss_Cover_a.pdf>]
+Package color Info: Redefining color shadecolor on input line 320.
+
+<figure/SAlly_Grass_Height_cover.pdf, id=299, 289.08pt x 289.08pt>
+File: figure/SAlly_Grass_Height_cover.pdf Graphic file (type pdf)
+
+<use figure/SAlly_Grass_Height_cover.pdf>
+Package pdftex.def Info: figure/SAlly_Grass_Height_cover.pdf used on input line
+ 320.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 325.
+
+<figure/SAlly_Grass_Height_Nesting.pdf, id=300, 289.08pt x 289.08pt>
+File: figure/SAlly_Grass_Height_Nesting.pdf Graphic file (type pdf)
+
+<use figure/SAlly_Grass_Height_Nesting.pdf>
+Package pdftex.def Info: figure/SAlly_Grass_Height_Nesting.pdf used on input li
+ne 325.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [25 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Dan_Grass_Hei
+ght.pdf> <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/SAlly_Gra
+ss_Height_cover.pdf>]
+Package color Info: Redefining color shadecolor on input line 331.
+
+<figure/Sally-Dan_Tree_Cover_up.pdf, id=315, 289.08pt x 289.08pt>
+File: figure/Sally-Dan_Tree_Cover_up.pdf Graphic file (type pdf)
+
+<use figure/Sally-Dan_Tree_Cover_up.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Tree_Cover_up.pdf used on input line 
+331.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 336.
+
+<figure/Sally-Dan_Tree_Cover_arroyo.pdf, id=316, 289.08pt x 289.08pt> [26 <C:/U
+sers/dominic/Documents/Work/Current Projects/MBQ/figure/SAlly_Grass_Height_Nest
+ing.pdf> <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan
+_Tree_Cover_up.pdf>]
+File: figure/Sally-Dan_Tree_Cover_arroyo.pdf Graphic file (type pdf)
+ <use figure/Sally-Dan_Tree_Cover_arroyo.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Tree_Cover_arroyo.pdf used on input l
+ine 336.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 341.
+
+<figure/Sally-Dan_Bare_Ground.pdf, id=330, 289.08pt x 289.08pt>
+File: figure/Sally-Dan_Bare_Ground.pdf Graphic file (type pdf)
+
+<use figure/Sally-Dan_Bare_Ground.pdf>
+Package pdftex.def Info: figure/Sally-Dan_Bare_Ground.pdf used on input line 34
+1.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 350.
+
+<figure/Roy_FD.pdf, id=331, 289.08pt x 289.08pt> [27 <C:/Users/dominic/Document
+s/Work/Current Projects/MBQ/figure/Sally-Dan_Tree_Cover_arroyo.pdf> <C:/Users/d
+ominic/Documents/Work/Current Projects/MBQ/figure/Sally-Dan_Bare_Ground.pdf>]
+File: figure/Roy_FD.pdf Graphic file (type pdf)
+
+<use figure/Roy_FD.pdf>
+Package pdftex.def Info: figure/Roy_FD.pdf used on input line 350.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 355.
+
+<figure/Grass_Diversity_Roy.pdf, id=345, 289.08pt x 289.08pt>
+File: figure/Grass_Diversity_Roy.pdf Graphic file (type pdf)
+
+<use figure/Grass_Diversity_Roy.pdf>
+Package pdftex.def Info: figure/Grass_Diversity_Roy.pdf used on input line 355.
+
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [28 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Roy_FD.pdf>]
+Package color Info: Redefining color shadecolor on input line 360.
+
+<figure/Roy_FH.pdf, id=354, 289.08pt x 289.08pt>
+File: figure/Roy_FH.pdf Graphic file (type pdf)
+ <use figure/Roy_FH.pdf>
+Package pdftex.def Info: figure/Roy_FH.pdf used on input line 360.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 365.
+
+<figure/Roy_GH.pdf, id=355, 289.08pt x 289.08pt> [29 <C:/Users/dominic/Document
+s/Work/Current Projects/MBQ/figure/Grass_Diversity_Roy.pdf> <C:/Users/dominic/D
+ocuments/Work/Current Projects/MBQ/figure/Roy_FH.pdf>]
+File: figure/Roy_GH.pdf Graphic file (type pdf)
+ <use figure/Roy_GH.pdf>
+Package pdftex.def Info: figure/Roy_GH.pdf used on input line 365.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 371.
+
+<figure/Shrub_Cover_Roy_Summer.pdf, id=369, 289.08pt x 289.08pt>
+File: figure/Shrub_Cover_Roy_Summer.pdf Graphic file (type pdf)
+
+<use figure/Shrub_Cover_Roy_Summer.pdf>
+Package pdftex.def Info: figure/Shrub_Cover_Roy_Summer.pdf used on input line 3
+71.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [30 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Roy_GH.pdf>]
+Package color Info: Redefining color shadecolor on input line 376.
+
+<figure/Shrub_Cover_Roy_Winter.pdf, id=378, 289.08pt x 289.08pt>
+File: figure/Shrub_Cover_Roy_Winter.pdf Graphic file (type pdf)
+
+<use figure/Shrub_Cover_Roy_Winter.pdf>
+Package pdftex.def Info: figure/Shrub_Cover_Roy_Winter.pdf used on input line 3
+76.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 381.
+
+<figure/Grass_Cover_Roy.pdf, id=379, 289.08pt x 289.08pt> [31 <C:/Users/dominic
+/Documents/Work/Current Projects/MBQ/figure/Shrub_Cover_Roy_Summer.pdf> <C:/Use
+rs/dominic/Documents/Work/Current Projects/MBQ/figure/Shrub_Cover_Roy_Winter.pd
+f>]
+File: figure/Grass_Cover_Roy.pdf Graphic file (type pdf)
+ <use figure/Grass_Cover_Roy.pdf>
+Package pdftex.def Info: figure/Grass_Cover_Roy.pdf used on input line 381.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 387.
+
+<figure/Forb_Cover_Roy_Sum.pdf, id=394, 289.08pt x 289.08pt>
+File: figure/Forb_Cover_Roy_Sum.pdf Graphic file (type pdf)
+
+<use figure/Forb_Cover_Roy_Sum.pdf>
+Package pdftex.def Info: figure/Forb_Cover_Roy_Sum.pdf used on input line 387.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [32 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Grass_Cover_R
+oy.pdf>]
+Package color Info: Redefining color shadecolor on input line 392.
+
+<figure/Forb_Cover_Roy_Win.pdf, id=403, 289.08pt x 289.08pt>
+File: figure/Forb_Cover_Roy_Win.pdf Graphic file (type pdf)
+
+<use figure/Forb_Cover_Roy_Win.pdf>
+Package pdftex.def Info: figure/Forb_Cover_Roy_Win.pdf used on input line 392.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+Package color Info: Redefining color shadecolor on input line 397.
+
+<figure/Bare_Ground_Roy.pdf, id=404, 289.08pt x 289.08pt> [33 <C:/Users/dominic
+/Documents/Work/Current Projects/MBQ/figure/Forb_Cover_Roy_Sum.pdf> <C:/Users/d
+ominic/Documents/Work/Current Projects/MBQ/figure/Forb_Cover_Roy_Win.pdf>]
+File: figure/Bare_Ground_Roy.pdf Graphic file (type pdf)
+
+<use figure/Bare_Ground_Roy.pdf>
+Package pdftex.def Info: figure/Bare_Ground_Roy.pdf used on input line 397.
+(pdftex.def)             Requested size: 289.07928pt x 289.09251pt.
+ [34 <C:/Users/dominic/Documents/Work/Current Projects/MBQ/figure/Bare_Ground_R
+oy.pdf>]
+("C:\Users\dominic\Documents\Work\Current Projects\MBQ\MBQ_Suitability_Function
+s.aux") ) 
+Here is how much of TeX's memory you used:
+ 1583 strings out of 494045
+ 26760 string characters out of 3145963
+ 68696 words of memory out of 3000000
+ 4848 multiletter control sequences out of 15000+200000
+ 8808 words of font info for 31 fonts, out of 3000000 for 9000
+ 715 hyphenation exceptions out of 8191
+ 27i,13n,19p,316b,369s stack positions out of 5000i,500n,10000p,200000b,50000s
+<C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx
+12.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi12
+.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pf
+b><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr17.pfb>
+Output written on MBQ_Suitability_Functions.pdf (34 pages, 341773 bytes).
+PDF statistics:
+ 440 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 266 words of extra memory for PDF output out of 10000 (max. 10000000)
+

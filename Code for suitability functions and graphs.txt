@@ -1,0 +1,252 @@
+\documentclass[12pt,letterpaper]{article}
+\topmargin 0.0in
+\oddsidemargin 0.0in
+\textwidth 6.5in
+\textheight 9.0in
+\headheight 0.0in
+\headsep 0.0in
+
+\newcommand{\balpha}{\mbox{\boldmath $\alpha$}}
+\newcommand{\bxi}{\mbox{\boldmath $\xi$}}
+\newcommand{\bneta}{\mbox{\boldmath $\eta$}}
+\newcommand{\btau}{\mbox{\boldmath $\tau$}}
+\newcommand{\bSigmaz}{\mbox{\boldmath $\hat{\Sigma}_z$}}
+\newcommand{\bthetaz}{\mbox{\boldmath $\hat{\theta}_z$}}
+\newcommand{\bgamma}{\mbox{\boldmath $\gamma$}}
+\newcommand{\bGamma}{\mbox{\boldmath $\Gamma$}}
+\newcommand{\bSigma}{\mbox{\boldmath $\Sigma$}}
+\newcommand{\bTheta}{\mbox{\boldmath $\Theta$}}
+\newcommand{\bbeta}{\mbox{\boldmath $\beta$}}
+\newcommand{\btheta}{\mbox{\boldmath $\theta$}}
+\newcommand{\beps}{\mbox{\boldmath $\epsilon$}}
+\newcommand{\bphi}{\mbox{\boldmath $\phi$}}
+\newcommand{\bmu}{\mbox{\boldmath $\mu$}}
+\newcommand{\xpx}{\mathbf{X}^\prime \mathbf{X}}
+\newcommand{\xpxinv}{(\mathbf{X}^\prime \mathbf{X})^{-1}}
+\newcommand{\bY}{\mathbf{Y}}
+\newcommand{\bX}{\mathbf{X}}
+\newcommand{\bI}{\mathbf{I}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\ba}{\mathbf{a}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\bC}{\mathbf{C}}
+\newcommand{\Exp}{\mathbb{E}}
+\newcommand{\eps}{\epsilon}
+\newcommand{\kron}{\otimes}
+\newcommand{\barr}{\begin{array}}
+\newcommand{\earr}{\end{array}}
+\newcommand{\bne}{\begin{equation}}
+\newcommand{\ene}{\end{equation}}
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\bean}{\begin{eqnarray*}}
+\newcommand{\eean}{\end{eqnarray*}}
+\newcommand{\bit}{\begin{itemize}}
+\newcommand{\eit}{\end{itemize}}
+\newcommand{\benum}{\begin{enumerate}}
+\newcommand{\eenum}{\end{enumerate}}
+\title{Code for suitability functions and graphs}
+\author{Dominic LaRoche}
+
+\begin{document}
+\maketitle
+
+<<Create functions to find beta and gamma parameters>>=
+
+beta<-function(m,a)
+{b<-(a-m*a)/m
+return(b)}
+
+gamma<-function(m,a)
+{b<-a/m
+return(b)}
+
+
+<<Ellis Shrub, Forb and Grass diversity>>=
+FD.ellis<-curve(pgamma(x,22.5,rate=1),10,40,ylab="Suitability",xlab="Number of Forb Species")#Ellis Forb Diversity#
+GD.ellis<-curve(pgamma(x,22.5,rate=1),10,40,ylab="Suitability",xlab="Number of Grass Species")#Ellis Grass Diversity#
+ShD.ellis<-curve(pgamma(x,11,rate=1),10,40,ylab="Suitability",xlab="Number of Shrub Species")#Ellis Shrub Diversity#
+
+
+##Ellis Forb Height##
+FH.ellis<-function(x)
+{ifelse(x<33,Y<-((x^2)/1089),ifelse(x>80,Y<-1+(-pgamma(x,115,rate=1,scale=1,)),Y<-(x/x)))
+return(Y)}
+FHval<-c(FH.ellis(0:32),FH.ellis(33:80),FH.ellis(81:200))
+plot(0:200,FHval,type="l",xlab="Forb Height (cm)",ylab="Suitability")
+
+
+##Ellis Shrub Height##
+SH.ellis<-curve(dnorm(x,1,.43),0,5,ylim=c(0,1),ylab="Suitability",xlab="Shrub Height (meters)")
+
+##Ellis Grass Cover##
+Percent.Canopy.Cov.Grass.ellis<-curve(pbeta(x,3,3.1),0,1,ylim=c(0,1),ylab="Suitability",xlab="Percent Canopy Cover of Grass")
+Visibility.from.side.ellis<-curve(7*dgamma(x,shape=2.5,rate=.4),0,25,ylim=c(0,1),ylab="Suitability",xlab="Distance to complete obstruction of visibility (m)")
+Percent.basal.area.Grass.ellis<-curve(dbeta(x,5,20)/5.5,0,1,ylim=c(0,1),ylab="Suitability",xlab="Percent Basal Area of Grass")
+
+##Ellis Tree Cover##
+Percent.Canopy.Cov.Tree.ellis<-curve(-pbeta(x,3,3.1),0,1,ylim=c(0,-1),ylab="Suitability",xlab="Percent Canopy Cover of Trees")
+
+##Ellis Grass Height##
+GH.ellis<-curve(dgamma(x,shape=2,rate=4)/1.5,0,3,ylim=c(0,1),ylab="Suitability",xlab="Grass Height (meters)")
+
+##Ellis Structural Diversity##
+Struct.div.ellis<-curve(pgamma(x,shape=7.5,rate=.5),0,40,ylim=c(0,1),ylab="Suitability",xlab="Structural Diversity measured as Number of Species")
+
+##Ellis Total Cover##
+Winter.total.cover.ellis<-curve(dbeta(x,3,7)/2.9,0,1,ylim=c(0,1),ylab="Suitability",xlab="Percent Total Canopy Cover (Winter)")
+Summer.total.cover.ellis<-curve(dbeta(x,4,4)/2.2,0,1,ylim=c(0,1),ylab="Suitability",xlab="Percent Total Canopy Cover (Summer)")
+beta<-function(m,a)
+{b<-(a-m*a)/m
+return(b)}
+
+########################################################################################################################################################################
+##Goodwin Forb Diversity#
+FD.Goodwin<-function(x)
+{ifelse(x<5,Y<-.2+(x/5.5)^2,ifelse(x>20,Y<-1+(-pgamma(x,shape=64,rate=2.35)),Y<-(x/x)))
+return(Y)}
+FD1<-FD.Goodwin(c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.89))
+FD2<-FD.Goodwin(seq(5.1,20,length.out=149))
+FD3<-FD.Goodwin(seq(20.1,30.1,length.out=100))
+FDval<-c(FD1,FD2,FD3)
+plot(seq(0,30.1,length.out=299),FDval,ylim=c(0,1),type="l",xlab="Forb Diversity (number of Spp)",ylab="Suitability")
+#OR#
+
+FD.Goodwin<-function(x)
+{ifelse(x<5,Y<-.2+(x/5.5)^2,ifelse(x>20,Y<-(.2+(16*20^6/x^7)),Y<-(x/x)))
+return(Y)}
+FD1<-FD.Goodwin(c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.89))
+FD2<-FD.Goodwin(seq(5.1,20,length.out=149))
+FD3<-FD.Goodwin(seq(20.1,30.1,length.out=100))
+FDval<-c(FD1,FD2,FD3)
+plot(seq(0,30.1,length.out=299),FDval,ylim=c(0,1),type="l",xlab="Forb Diversity (number of Spp)",ylab="Suitability")
+
+
+##Goodwin Forb Cover#
+#Arizona#
+FCA.Goodwin<-function(x)
+{ifelse(x<=.5,Y<-(.2+(dbeta(x,5,19)/6.4)),Y<-x-(x^2)-.05)
+return(Y)}
+FCval1<-FCA.Goodwin(seq(0,.5,length.out=50))
+FCval2<-FCA.Goodwin(seq(.51,1,length.out=50))
+FCval<-c(FCval1,FCval2)
+plot(seq(0,1,length.out=100),FCval,ylim=c(0,1),type="l",xlab="Proportion Forb Cover (AZ)",ylab="Suitability")
+
+#Mexico#
+FCM.Goodwin<-curve(.3+(dbeta(x,10,18.57)/6.5),0,1,ylim=c(0,1),ylab="Suitability",xlab="Proportion Forb Cover (MX)")
+
+##Goodwin Shrub Cover#
+SCA.Goodwin<-curve(dbeta(x,5,20)/5.2,0,1,ylim=c(0,1),ylab="Suitability",xlab="Proportion Shrub Cover (AZ)")
+
+SCM.Goodwin<-function(x)
+{ifelse(x<=.5,Y<-dbeta(x,3,7.909)/3.1,Y<-x-(x^2)-0.0157323)
+return(Y)}
+SCval1<-SCM.Goodwin(seq(0,.5,length.out=50))
+SCval2<-SCM.Goodwin(seq(.51,1,length.out=50))
+SCval<-c(SCval1,SCval2)
+plot(seq(0,1,length.out=100),SCval,ylim=c(0,1),type="l",xlab="Proportion Shrub Cover (MX)",ylab="Suitability")
+
+##Goodwin Grass Diversity#
+GDM.Goodwin<-curve(pgamma(x,shape=2,rate=.444),0,30,ylim=c(0,1),ylab="Suitability",xlab="Grass Diversity in Mexico (number of species)")
+GDA.Goodwin<-curve(pgamma(x,shape=5,rate=.476),0,30,ylim=c(0,1),ylab="Suitability",xlab="Grass Diversity in Arizona (number of species)")
+
+##Goodwin Grass Cover#
+GCM.Goodwin<-curve(.5+dbeta(x,10,70)/22,0,1,ylim=c(0,1),ylab="Suitability",xlab="Proportion Grass Cover (MX)")
+
+GCA.Goodwin<-function(x)
+{ifelse(x<=.28,Y<-dbeta(x,15,60)/8.8,Y<-.2)
+return(Y)}
+GCval1<-GCA.Goodwin(seq(0,.28,length.out=28))
+GCval2<-c(GCA.Goodwin(.29),GCA.Goodwin(1))
+GCval<-c(GCval1,GCval2)
+plot(c(seq(0,.28,length.out=28),.29,1),GCval,ylim=c(0,1),type="l",ylab="suitability",xlab="Proportion Grass Cover (AZ)")
+
+##Goodwin Tree Cover#
+TCM.Goodwin<-function(x)
+{ifelse(x<=.26,Y<-.1+dbeta(x,15,70.71)/11,Y<-.2)
+return(Y)}
+TCMval1<-TCM.Goodwin(seq(0,.26,length.out=26))
+TCMval2<-c(TCM.Goodwin(.27),TCM.Goodwin(1))
+TCMval<-c(TCMval1,TCMval2)
+plot(c(seq(0,.26,length.out=26),.27,1),TCMval,ylim=c(0,1),type="l",ylab="suitability",xlab="Proportion Tree Cover (MX)")
+
+TCA.Goodwin<-function(x)
+{ifelse(x<=.07,Y<-.2+dbeta(x,10,190)/34,Y<-dbeta(x,10,190)/34)
+return(Y)}
+TCAval1<-TCA.Goodwin(seq(0,.07,length.out=71))
+TCAval2<-TCA.Goodwin(seq(.071,1,length.out=929))
+TCAval<-c(TCAval1,TCAval2)
+plot(seq(0,1,length.out=1000),TCAval,ylim=c(0,1),type="l",ylab="suitability",xlab="Proportion Tree Cover (AZ)")
+
+#######################################################################################################################################################################
+##Sally-Dan Forb Diversity#
+FD.sd<-curve(pgamma(x,22.5,rate=1),0,40,ylab="Suitability",xlab="Number of Forb Species")
+
+##Sally-Dan Forb Height#
+FH.Spring.sd<-curve(1+(-pgamma(x,13,rate=1)),0,30,ylab="Suitability",xlab="Average Height of Forbs (inches)")
+FH.Fall.sd<-curve(pgamma(x,13,rate=1),0,30,ylab="Suitability",xlab="Average Height of Forbs (inches)")
+
+##Sally-Dan Forb Cover#
+FC.Fall.sd<-function(x)
+{ifelse(x<=.5,Y<-dbeta(x,30,30)/6.15469,ifelse(x>=.6,Y<-.2+(dbeta(x,30,24.54)/6.3),Y<-1))
+return(Y)}
+FC.fall1<-FC.Fall.sd(seq(0,.5,length.out=500))
+FC.fall2<-c(FC.Fall.sd(.51),FC.Fall.sd(.59))
+FC.fall3<-FC.Fall.sd(seq(.6,1,length.out=500))
+FC.fall<-c(FC.fall1,FC.fall2,FC.fall3)
+plot(c(seq(0,.5,length.out=500),.51,.59,seq(.6,1,length.out=500)),FC.fall,ylim=c(0,1),type="l",ylab="suitability",xlab="Proportion Grass Cover in Fall and Winter")
+
+FC.Spring.sd<-function(x)
+{ifelse(x<=.35,Y<-dbeta(x,4,4)/1.648437,ifelse(x>=.65,Y<-(dbeta(x,4,4))/1.648437,Y<-1))
+return(Y)}
+FC.spring1<-FC.Spring.sd(seq(0,.35,length.out=350))
+FC.spring2<-c(FC.Spring.sd(.36),FC.Spring.sd(.64))
+FC.spring3<-FC.Spring.sd(seq(.65,1,length.out=350))
+FC.spring<-c(FC.spring1,FC.spring2,FC.spring3)
+plot(c(seq(0,.35,length.out=350),.36,.64,seq(.65,1,length.out=350)),FC.spring,ylim=c(0,1),type="l",ylab="suitability",xlab="Proportion Grass Cover in Spring and Summer")
+
+##Sally-Dan Shrub Cover#
+SC.Dan<-curve(dbeta(x,5,7.5)/2.81905,0,1,ylim=c(0,1),ylab="Suitability",xlab="Proportion of Shrub Cover (Expert 1)")
+
+SC.Sally<-function(x)
+{ifelse(x<=.3,Y<-dbeta(x,3,3)/1.323,ifelse(x>=.6,Y<-(dbeta(x,3,3))/1.728,Y<-1))
+return(Y)}
+SC1<-SC.Sally(seq(0,.3,length.out=300))
+SC2<-c(SC.Sally(.36),SC.Sally(.59))
+SC3<-SC.Sally(seq(.6,1,length.out=400))
+SC<-c(SC1,SC2,SC3)
+plot(c(seq(0,.3,length.out=300),.31,.59,seq(.6,1,length.out=400)),SC,ylim=c(0,1),type="l",ylab="suitability",xlab="Proportion Shrub Cover (Expert 2)")
+
+##Sally-Dan Shrub Height#
+SH.sd<-curve(dgamma(x,10,2.5)*3.05,0,15,ylim=c(0,1),ylab="Suitability",xlab="Average Shrub Height")
+
+##Sally-Dan Grass Diversity#
+GD.p.sd<-curve(pgamma(x,7,2.3333),0,10,ylab="Suitability",xlab="Number of Perennial Grass Species")
+
+GD.a.sd<-curve(pgamma(x,5,2.5),0,10,ylab="Suitability",xlab="Number of Annual Grass Species")
+
+##Sally-Dan Grass Cover#
+GC.p.sd<-function(x)
+{ifelse(x<=.55,Y<-1.818182*x,Y<-dbeta(x,5,4.090909)/2.351513)
+return(Y)}
+GC1<-GC.p.sd(seq(0,.55,length.out=550))
+GC2<-GC.p.sd(seq(.551,1,length.out=450))
+GC<-c(GC1,GC2)
+plot(c(seq(0,.55,length.out=550),seq(.551,1,length.out=450)),GC,ylim=c(0,1),type="l",ylab="suitability",xlab="Proportion Perennial Grass Cover")
+
+GC.a.sd<-curve(dbeta(x,2,3)/1.79,0,1,ylim=c(0,1),ylab="Suitability",xlab="Proportion of Annual Grass Cover")
+
+##Sally-Dan Grass Height#
+GH.Dan<-curve(dnorm(x,4.5,1.2)*3.007954,0,8,ylim=c(0,1),ylab="Suitability",xlab="Grass Height (feet) Expert 1")
+
+GH.Sally.cover<-curve(dnorm(x,3.5,1.4)*3.509279,0,8,ylim=c(0,1),ylab="Suitability",xlab="Grass Height (feet) for Cover Expert 2")
+
+GH.Sally.cover<-curve(dnorm(x,1.5,.5)*1.253314,0,8,ylim=c(0,1),ylab="Suitability",xlab="Grass Height (feet) for Nesting Expert 2")
+
+##Sally-Dan Tree Cover#
+TC.up.sd<-curve(dnorm(x,.05,.04)/9.973557,0,1,ylim=c(0,1),ylab="Suitability",xlab="Proportion Tree Cover in Uplands")
+
+TC.arroyo.sd<-curve(dnorm(x,.3,.18)/2.216346,0,1,ylim=c(0,1),ylab="Suitability",xlab="Proportion Tree Cover in Arroyos")
+
+##Sally-Dan Bare Ground#
+BG.sd<-curve(dbeta(x,3,9)/3.35,0,1,ylim=c(0,1),ylab="Suitability",xlab="Proportion Bare Ground")

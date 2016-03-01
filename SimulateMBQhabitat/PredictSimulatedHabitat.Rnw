@@ -1,0 +1,1259 @@
+\documentclass{article}
+\title{Evaluate Models on Simulated Data}
+\author(Dominic LaRoche)
+\begin{document}
+This code retreives simulated data stored in .csv files and predicts habitat suitability based on the five different HSI models developed for Masked bobwhites.\\
+
+<<getData>>=
+sim1<-read.csv("C:\\Users\\dominic\\Documents\\Work\\Current Projects\\MBQ\\SimulateMBQhabitat\\sim3.csv")
+#need to fix total cover variable
+setwd("C:/Users/dominic/Documents/Work/Current Projects/MBQ/PredictionPlotsFromSimulations/Simulation3")
+@
+For each data set I first need to create the final variable which is a binary variable indicating structural diversity within each acre (as per Mary Hunnicutt's HSI model).  She described it as "each layer represented in each acre".  I will consider each pixel (data point) in the simulated data to be $2m^2$, therefore one acre will be any 30x30 subset of the data matrix.  I will also consider a structure layer to be present if >30\% cover of that layer is present at >25\% of the points within one acre centered on the point being valued by the function.  Points on the edge of the modeled area will contain the fraction of the acre circle for which data is present (with each pixel= to 2m an acre circle will have radius 18.05864).  I need to ask Mary directly what she considers present on an acre (i.e. how much of each layer is necessary to call it "present"?).\\
+<<TurnDataintoRaster>>=
+require(raster)
+require(sp)
+simR<-SpatialPixelsDataFrame(points=sim1[,1:2],sim1[,3:28])#turn data frame into a pixels data frame using points and data
+simB<-brick(simR)#turn pixels into a raster object for performing calculations
+@
+I created a nested function to determine the ``Presence" of a structure layer on an acre.  To do this I fist determine the total number of cells in the acre which exceed the threshold cover value (this value varies dpending on the layer type).  I then sum up the total number of these cells to determine if they exceed 20\% of the total acre, if they do then the center cell gets a value of 1 and 0 otherwise.\\
+
+<<MaryStructureFunctions>>==
+Threshold.bg<-function(x){#creae a function that returns 1 if pixel has over 20% cover (use decimal eg. .3 for 30%)
+  y<-ifelse(x>=.2/961,1,0)#divide by size of weight matrix since matrix must add to 1 (odd but necessary)
+  return(y)
+}
+Total.over.bg<-function(x){#this function loops through all the variables in the neighborhood defined by the focal() function and adds up 
+  y<-rep(0,length(x))
+  for(i in 1:length(x)){
+    y[i]<-Threshold.bg(x[i])
+  }
+  present<-ifelse(sum(y)>=192,1,0)#since present means >30% cover on >20% area this returns a 1 if greater than 20% of the area (961 pixels)
+  return(present)
+}
+
+Threshold.fc<-function(x){
+  y<-ifelse(x>=.3/961,1,0)
+  return(y)
+}
+Total.over.fc<-function(x){
+  y<-rep(0,length(x))
+  for(i in 1:length(x)){
+    y[i]<-Threshold.fc(x[i])
+  }
+  present<-ifelse(sum(y)>=192,1,0)
+  return(present)
+}
+
+Threshold.sc<-function(x){
+  y<-ifelse(x>=.15/961,1,0)
+  return(y)
+}
+Total.over.sc<-function(x){
+  y<-rep(0,length(x))
+  for(i in 1:length(x)){
+    y[i]<-Threshold.sc(x[i])
+  }
+  present<-ifelse(sum(y)>=192,1,0)
+  return(present)
+}
+
+Threshold.tc<-function(x){
+  y<-ifelse(x>=.05/961,1,0)
+  return(y)
+}
+Total.over.tc<-function(x){
+  y<-rep(0,length(x))
+  for(i in 1:length(x)){
+    y[i]<-Threshold.sc(x[i])
+  }
+  present<-ifelse(sum(y)>=192,1,0)
+  return(present)
+}
+@
+<<MakeStructureLayers>>=
+mat<-matrix(rep(1/961,961),31,31)
+t.BG<-focal(simB[[1]],w=mat,Total.over.bg,pad=TRUE,padValue=0)
+t.FC<-focal(simB[[2]],w=mat,Total.over.fc,pad=TRUE,padValue=0)
+t.GC<-focal(simB[[5]],w=mat,Total.over.fc,pad=TRUE,padValue=0)
+t.SC<-focal(simB[[8]],w=mat,Total.over.sc,pad=TRUE,padValue=0)
+t.TC<-focal(simB[[11]],w=mat,Total.over.tc,pad=TRUE,padValue=0)
+@
+Now we have 5 layers with the total number of pixels of a particular cover variable exceeding the threshold.  In order for the structural diversity variable to = 1, each of these five layers must exceed the 20\% representation threshold indicating that the layer is present.\\
+<<MakeMarysStructuralDiversityLayer>>=
+StrD.m<-t.TC
+values(StrD.m)<-0 #make empty raster layer with the same size and resolution as the other layers
+for(i in 1:ncell(t.BG)){#populate layer with 1 if all other values are 1
+  if(t.BG[i]==1 & t.FC[i]==1 & t.GC[i]==1 & t.SC[i]==1 & t.TC[i]==1) {
+    StrD.m[i]<-1 
+    }  else{
+      StrD.m[i]<-0
+}
+}
+simB<-addLayer(simB,StrD.m)
+simB<-brick(simB)
+names(simB$layer)<-"StrD.m"
+@
+Now I have a complete list of variables and I can apply the suitability functions from each model to get suitability maps.  I will first create the different functions to pass to the layers.\\
+<<MaryHSFunction>>=
+NC.Mary<-function(x){
+  s<-ifelse(x<300,dnorm(x,300,100)*250.6628,ifelse(x>600,dnorm(x,600,200)*501.327,1))
+  return(s)
+}
+FCGC.Mary<-function(x){
+  s<-ifelse(x<.15,dbeta(x,1.1,1)*1.099001,1)
+  return(s)
+}
+GD.Mary<-function(x){
+  s<-pgamma(x,10,1.428571)
+  return(s)
+}
+FD.Mary<-function(x){
+  s<-pgamma(x,20,2)
+  return(s)
+}
+STD.Mary<-function(x){
+  s<-pgamma(x,2,.8)#Mary tree/shrub diversity
+  return(s)
+}
+TC.Mary<-function(x){
+  s<-dbeta(x,1.3,7.366667)/4.501841
+  return(s)
+}
+Layer.Mary<-function(x){
+  s<-ifelse(x==1,1,0)
+  return(s)
+}
+SC.Mary<-function(x){
+  s<-dbeta(x,1.5,3.5)/2.108676
+  return(s)
+}
+BG.Mary<-function(x){
+  s<-ifelse(x<.2805743,dbeta(x,3,4.5)/2,ifelse(x>.4525119,dbeta(x,3,4.5)/2,1))
+  return(s)
+}
+GR.Mary<-function(x){
+  s<-rank(x)/length(x)
+  return(s)
+}
+EH.Mary<-StrD.m#need a better function for edge habitat but for now I will assign it the same value as Sturctural diversity
+
+Food.Mary<-function(sc,bg,fc,gc,gr,gd,fd,sd){#need to figure out what GU is???
+  f<-(SC.Mary(sc)+BG.Mary(bg)+FCGC.Mary(fc)+FCGC.Mary(gc)+GR.Mary(gr)+GD.Mary(gd)+FD.Mary(fd)+STD.Mary(sd))/8
+  return(f)
+}
+Cover.Mary<-function(tc,sc,fc,gc,eh,lv,sd){
+  c<-(TC.Mary(tc)+SC.Mary(sc)+FCGC.Mary(fc)+FCGC.Mary(gc)+EH.Mary+Layer.Mary(lv)+STD.Mary(sd))/7
+  return(c)
+}
+Reproduction.Mary<-function(tc,bg,sc,nc,fc,gc,gr,fd,sd){#GU is here too
+  r<-(TC.Mary(tc)+BG.Mary(bg)+SC.Mary(sc)+NC.Mary(nc)+FCGC.Mary(fc)+FCGC.Mary(gc)+GR.Mary(gr)+FD.Mary(fd)+STD.Mary(sd))/9
+  return(r)
+}
+HSI.cell<-function(fc,gc,sc,tc,bg,nc,gr,fd,sd,gd,lv,eh){
+  f<-Food.Mary(sc,bg,fc,gc,gr,gd,fd,sd)
+  c<-Cover.Mary(tc,sc,fc,gc,eh,lv,sd)
+  r<-Reproduction.Mary(tc,bg,sc,nc,fc,gc,gr,fd,sd)
+  s<-rep(0,length(r))
+  for(i in 1:length(f)){
+    s[i]<-min(f[i],c[i],r[i])
+  }
+  return(s)
+}
+S.Mary<-HSI.cell(fc=values(simB[[2]]),gc=values(simB[[5]]),sc=values(simB[[8]]),tc=values(simB[[11]]),bg=values(simB[[1]]),nc=values(simB[[13]]),gr=values(simB[[12]]),fd=values(simB[[3]]),sd=values(simB[[9]]),gd=values(simB[[6]]),lv=values(simB[[24]]),eh=values(EH.Mary))
+S.Mary.Layer<-StrD.m
+values(S.Mary.Layer)<-S.Mary
+win.metafile(filename="MaryHSIPredPlot")
+plot(S.Mary.Layer,main="Habitat Suitability Index Map \n Based on Mary Hunnicutt")
+dev.off()
+
+HSI.data1<-cbind(rasterToPoints(S.Mary.Layer),rep("Mary_Hunicutt",length(S.Mary)))
+names(HSI.data1)<-c("x","y","Suitability","Author")
+
+HSIbyAuth<-S.Mary
+names(HSIbyAuth)<-"Mary_Hunicutt"
+@
+<<SallyDanHSFuunction>>=
+GC.p.sd<-function(x){
+  s<-ifelse(x<=.55,1.818182*x,dbeta(x,5,4.090909)/2.351513)
+  return(s)
+}
+GC.A.sd<-function(x){
+  s<-dbeta(x,2,3)/1.79
+  return(s)
+}
+GD.P.sd<-function(x){
+  s<-pgamma(x,7,2.3333)
+  return(s)
+}
+GD.A.sd<-function(x){
+  s<-pgamma(x,5,2.5)
+  return(s)
+}
+FD.sd<-function(x){
+  s<-pgamma(x,22.5,rate=1)
+  return(s)
+}
+FH.Spring.sd<-function(x){
+  s<-1+(-pgamma(x,13,rate=1))
+  return(s)
+}
+FH.Fall.sd<-function(x){
+  s<-pgamma(x,13,rate=1)
+  return(s)
+}
+SH.sd<-function(x){
+  s<-dgamma(x,10,2.5)*3.05
+  return(s)
+}
+TC.up.sd<-function(x){ #use the normal TC variable
+  s<-dnorm(x,.05,.04)/9.973557
+  return(s)
+}
+TC.arroyo.sd<-function(x){#use TCa
+  s<-dnorm(x,.3,.18)/2.216346
+  return(s)
+}
+GH.dan<-function(x){
+  s<-dnorm(x,1.37,.4)*1.002
+  return(s)
+}
+GH.sally.cover<-function(x){#use GH
+  s<-dnorm(x,1.07,.45)*1.127983
+  return(s)
+}
+GH.sally.nesting<-function(x){#use GH
+  s<-dnorm(x,.45,.15)/2.659615
+  return(s)
+}
+FC.Fall.sd<-function(x){#use FC
+  s<-ifelse(x<=.5,dbeta(x,30,30)/6.15469,ifelse(x>=.6,.2+(dbeta(x,30,24.54)/6.3),1))
+  return(s)
+}
+FC.Spring.sd<-function(x){#use FCs
+  s<-ifelse(x<=.35,dbeta(x,4,4)/1.648437,ifelse(x>=.65,(dbeta(x,4,4))/1.648437,1))
+  return(s)
+}
+SC.Dan<-function(x){
+  s<-dbeta(x,5,7.5)/2.84164
+  return(s)
+}
+SC.Sally<-function(x){
+  s<-ifelse(x<=.3,dbeta(x,3,3)/1.875,ifelse(x>=.6,(dbeta(x,3,3))/1.728,1))
+  return(s)
+}
+BG.sd<-function(x){
+  s<-dbeta(x,3,9)/3.322
+  return(s)
+}
+Forbs.sd<-function(fc,fcs,fhf,fhs,fd){
+  f<-(FC.Fall.sd(fc)*FC.Spring.sd(fcs)*FH.Fall.sd(fhf)*FH.Spring.sd(fhs)*FD.sd(fd))^.2
+  return(f)
+}
+Grass.dan<-function(ghc,gcp,gca,gdp,gda){
+  g<-(GH.dan(ghc)*GC.p.sd(gcp)*GC.A.sd(gca)*GD.P.sd(gdp)*GD.A.sd(gda))^.2
+  return(g)
+}
+Grass.sally<-function(ghc,gcp,gca,gdp,gda){
+  g<-(GH.sally.nesting(ghc)*GH.sally.cover(ghc)*GC.p.sd(gcp)*GC.A.sd(gca)*GD.P.sd(gdp)*GD.A.sd(gda))^.2
+  return(g)
+}
+Shrubs.dan<-function(sc,sh){
+  s<-(SC.Dan(sc)*SH.sd(sh))^.5
+  return(s)
+}
+Shrubs.sally<-function(sc,sh){
+  s<-(SC.Sally(sc)*SH.sd(sh))^.5
+  return(s)
+}
+TreeCover.sd<-function(tc,tca){
+  t<-(TC.up.sd(tc)*TC.arroyo.sd(tca))^.5
+}
+Reproduction.dan<-function(tc,tca,ghc,gcp,gca,gdp,gda,bg){
+  r<-(TreeCover.sd(tc,tca)+Grass.dan(ghc,gcp,gca,gdp,gda)+BG.sd(bg))/3
+  return(r)
+}
+Reproduction.sally<-function(tc,tca,ghc,gcp,gca,gdp,gda,bg){
+  r<-(TreeCover.sd(tc,tca)+Grass.sally(ghc,gcp,gca,gdp,gda)+BG.sd(bg))/3
+  return(r)
+}
+Food.dan<-function(fc,fcs,fhf,fhs,fd,ghc,gcp,gca,gdp,gda,sc,sh){
+  f<-(Forbs.sd(fc,fcs,fhf,fhs,fd)+Grass.dan(ghc,gcp,gca,gdp,gda)+Shrubs.dan(sc,sh))/3
+  return(f)
+}
+Food.sally<-function(fc,fcs,fhf,fhs,fd,ghc,gcp,gca,gdp,gda,sc,sh){
+  f<-(Forbs.sd(fc,fcs,fhf,fhs,fd)+Grass.sally(ghc,gcp,gca,gdp,gda)+Shrubs.sally(sc,sh))/3
+  return(f)
+}
+Cover.dan<-function(tc,tca,ghc,gcp,gca,gdp,gda,fc,fcs,fhf,fhs,fd,sc,sh,bg){
+  c<-(TreeCover.sd(tc,tca)+Grass.dan(ghc,gcp,gca,gdp,gda)+Forbs.sd(fc,fcs,fhf,fhs,fd)+Shrubs.dan(sc,sh)+BG.sd(bg))/5
+  return(c)
+}
+Cover.sally<-function(tc,tca,ghc,gcp,gca,gdp,gda,fc,fcs,fhf,fhs,fd,sc,sh,bg){
+  c<-(TreeCover.sd(tc,tca)+Grass.sally(ghc,gcp,gca,gdp,gda)+Forbs.sd(fc,fcs,fhf,fhs,fd)+Shrubs.sally(sc,sh)+BG.sd(bg))/5
+  return(c)
+}
+HSI.dan<-function(tc,tca,ghc,gcp,gca,gdp,gda,fc,fcs,fhf,fhs,fd,sc,sh,bg){
+  food<-Food.dan(fc,fcs,fhf,fhs,fd,ghc,gca,gcp,gdp,gda,sc,sh)
+  repro<-Reproduction.dan(tc,tca,ghc,gcp,gca,gdp,gda,bg)
+  cover<-Cover.dan(tc,tca,ghc,gcp,gca,gdp,gda,fc,fcs,fhf,fhs,fd,sc,sh,bg)
+  therm<-TreeCover.sd(tc,tca)
+  s<-rep(0,length(food))
+  for(i in 1:length(food)){
+    s[i]<-min(food[i],repro[i],cover[i],therm[i])
+  }
+  return(s)
+}
+HSI.sally<-function(tc,tca,ghc,gcp,gca,gdp,gda,fc,fcs,fhf,fhs,fd,sc,sh,bg){
+  food<-Food.sally(fc,fcs,fhf,fhs,fd,ghc,gcp,gca,gdp,gda,sc,sh)
+  repro<-Reproduction.sally(tc,tca,ghc,gcp,gca,gdp,gda,bg)
+  cover<-Cover.sally(tc,tca,ghc,gcp,gca,gdp,gda,fc,fcs,fhf,fhs,fd,sc,sh,bg)
+  therm<-TreeCover.sd(tc,tca)
+  s<-rep(0,length(food))
+  for(i in 1:length(food)){
+    s[i]<-min(food[i],repro[i],cover[i],therm[i])
+  }
+  return(s)
+}
+S.Dan<-HSI.dan(tc=values(simB[[11]]),tca=values(simB[[20]]),ghc=values(simB[[7]]),gcp=values(simB[[14]]),gca=values(simB[[15]]),gdp=values(simB[[16]]),gda=values(simB[[17]]),fc=values(simB[[2]]),fcs=values(simB[[21]]),fhf=values(simB[[19]]),fhs=values(simB[[18]]),fd=values(simB[[3]]),sc=values(simB[[8]]),sh=values(simB[[10]]),bg=values(simB[[1]]))
+S.Sally<-HSI.sally(tc=values(simB[[11]]),tca=values(simB[[20]]),ghc=values(simB[[7]]),gcp=values(simB[[14]]),gca=values(simB[[15]]),gdp=values(simB[[16]]),gda=values(simB[[17]]),fc=values(simB[[2]]),fcs=values(simB[[21]]),fhf=values(simB[[19]]),fhs=values(simB[[18]]),fd=values(simB[[3]]),sc=values(simB[[8]]),sh=values(simB[[10]]),bg=values(simB[[1]]))
+S.Dan.Layer<-simB[[1]]
+values(S.Dan.Layer)<-S.Dan
+
+win.metafile(filename="DanHSIPredPlot")
+Dan.p<-plot(S.Dan.Layer,main="Habitat Suitability Index Map \n Based on Dan Cohan")
+dev.off()
+
+S.Sally.Layer<-simB[[1]]
+values(S.Sally.Layer)<-S.Sally
+win.metafile(filename="SallyHSIPredPlot")
+Sally.p<-plot(S.Sally.Layer,main="Habitat Suitability Index Map \n Based on Sally Gall")
+dev.off()
+
+HSI.d<-cbind(rasterToPoints(S.Dan.Layer),rep("Dan_Cohan",length(S.Dan)))
+HSI.s<-cbind(rasterToPoints(S.Sally.Layer),rep("Sally_Gall",length(S.Dan)))
+names(HSI.d)<-names(HSI.s)<-names(HSI.data1)
+HSI.data1<-rbind(HSI.data1,HSI.d,HSI.s)
+
+HSIsd<-cbind(S.Dan,S.Sally)
+colnames(HSIsd)<-c("Dan_Cohan","Sally_Gall")
+HSIbyAuth<-cbind(HSIbyAuth,HSIsd)
+@
+<<GoodwinHSFunction>>=
+GCM.Goodwin<-function(x){#use GC
+  s<-(.5+dbeta(x,10,70))/11.56455
+  return(s)
+}
+GCA.Goodwin<-function(x){#use GC
+  s<-ifelse(x<=.28,dbeta(x,15,60)/8.8,.2)
+  return(s)
+}
+GDM.Goodwin<-function(x){
+  s<-pgamma(x,shape=2,rate=.444)
+  return(s)
+}
+GDA.Goodwin<-function(x){
+  s<-pgamma(x,shape=5,rate=.476)
+  return(s)
+}
+FD.Goodwin<-function(x){
+  s<-ifelse(x<=4.9,.2+(x/5.5)^2,ifelse(x>15,1+(-pgamma(x,shape=64,rate=2.35)),(x/x)))
+  return(s)
+}
+TCM.Goodwin<-function(x){
+  s<-ifelse(x<=.26,.1+dbeta(x,15,70.71)/11,.2)
+  return(s)
+}
+TCA.Goodwin<-function(x){
+  s<-ifelse(x<=.07,.2+dbeta(x,10,190)/34,dbeta(x,10,190)/34)
+  return(s)
+}
+FCA.Goodwin<-function(x){
+  s<-ifelse(x<=.5,(.2+(dbeta(x,5,19)/6.4)),x-(x^2)-.05)
+  return(s)
+}
+FCM.Goodwin<-function(x){
+  s<-(.3+dbeta(x,10,18.57))/4.75982
+  return(s)
+}
+SCA.Goodwin<-function(x){
+  s<-dbeta(x,5,20)/5.155
+  return(s)
+}
+SCM.Goodwin<-function(x){
+  s<-ifelse(x<=.5,dbeta(x,3,7.909)/3.1,x-(x^2)-0.0157323)
+  return(s)
+}
+Food.a.goodwin<-function(gd,fd){
+  s<-(GDA.Goodwin(gd)+FD.Goodwin(fd))/2
+  return(s)
+}
+Food.m.goodwin<-function(gd,fd){
+  f<-(GDM.Goodwin(gd)+FD.Goodwin(fd))/2
+  return(f)
+}
+Cover.a.goodwin<-function(fd,fc,gd,gc,tc,sc){
+  c<-(((FD.Goodwin(fd)*FCA.Goodwin(fc))^.5)+((GDA.Goodwin(gd)*GCA.Goodwin(gc))^.5)+TCA.Goodwin(tc)+SCA.Goodwin(sc))/4
+  return(c)      
+}
+Cover.m.goodwin<-function(fd,fc,gd,gc,tc,sc){
+  c<-(((FD.Goodwin(fd)*FCM.Goodwin(fc))^.5)+((GDM.Goodwin(gd)*GCM.Goodwin(gc))^.5)+TCM.Goodwin(tc)+SCM.Goodwin(sc))/4
+  return(c)      
+}
+Thermal.a.goodwin<-function(fd,fc,tc){
+  t<-((FD.Goodwin(fd)*FCA.Goodwin(fc)^.5)+TCA.Goodwin(tc))/2
+  return(t)
+}
+Thermal.m.goodwin<-function(fd,fc,tc){
+  t<-((FD.Goodwin(fd)*FCM.Goodwin(fc)^.5)+TCM.Goodwin(tc))/2
+  return(t)
+}
+HSI.a.goodwin<-function(fd,fc,gd,gc,tc,sc){
+  f<-Food.a.goodwin(gd,fd)
+  c<-Cover.a.goodwin(fd,fc,gd,gc,tc,sc)
+  t<-Thermal.a.goodwin(fd,fc,tc)
+  s<-rep(0,length(f))
+  for(i in 1:length(f)){
+    s[i]<-min(f[i],c[i],t[i])
+  }
+  return(s)
+}
+HSI.m.goodwin<-function(fd,fc,gd,gc,tc,sc){
+  f<-Food.m.goodwin(gd,fd)
+  c<-Cover.m.goodwin(fd,fc,gd,gc,tc,sc)
+  t<-Thermal.m.goodwin(fd,fc,tc)
+  s<-rep(0,length(f))
+  for(i in 1:length(f)){
+    s[i]<-min(f[i],c[i],t[i])
+  }
+  return(s)
+}
+S.Goodwin.A<-HSI.a.goodwin(fd=values(simB$FD),fc=values(simB$FC),gd=values(simB$GD),gc=values(simB$GC),tc=values(simB$TC),sc=values(simB$SC))
+S.Goodwin.M<-HSI.m.goodwin(fd=values(simB[[3]]),fc=values(simB[[2]]),gd=values(simB[[6]]),gc=values(simB[[5]]),tc=values(simB[[11]]),sc=values(simB[[8]]))
+S.Goodwin.A.Layer<-simB[[1]]
+values(S.Goodwin.A.Layer)<-S.Goodwin.A
+S.Goodwin.M.Layer<-simB[[1]]
+values(S.Goodwin.M.Layer)<-S.Goodwin.M
+win.metafile(filename="GoodwinHSIPredPlotArizona")
+plot(S.Goodwin.A.Layer,main="Habitat Suitability Index Map \n Based on John Goodwin (AZ)")
+dev.off()
+win.metafile(filename="GoodwinHSIPredPlotMexico")
+plot(S.Goodwin.M.Layer,main="Habitat Suitability Index Map \n Based on John Goodwin (MX)")
+dev.off()
+
+HSI.gm<-cbind(rasterToPoints(S.Goodwin.M.Layer),rep("Goodwin_MX",length(S.Goodwin.M)))
+HSI.ga<-cbind(rasterToPoints(S.Goodwin.A.Layer),rep("Goodwin_AZ",length(S.Goodwin.M)))
+HSI.data1<-rbind(HSI.data1,HSI.gm,HSI.ga)
+
+HSIg<-cbind(S.Goodwin.M,S.Goodwin.A)
+colnames(HSIg)<-c("Goodwin_MX","Goodwin_AZ")
+HSIbyAuth<-cbind(HSIbyAuth,HSIg)
+@
+
+<<RoyHSFunction>>=
+GC.roy<-function(x){
+  s<-dbeta(x,9,9)/3.34
+  return(s)
+}
+GD.roy<-function(x){
+  s<-pgamma(x,24,rate=1)
+  return(s)
+}
+FD.roy<-function(x){
+  s<-pgamma(x,25.5,rate=1)
+  return(s)
+}
+FH.roy<-function(x){
+  s<-dgamma(x/100,4,8)/1.8
+  return(s)
+}
+TC.Sum.roy<-function(x){
+  s<-dbeta(x,8,58.6667)/10.35954
+  return(s)
+}
+TC.Win.roy<-function(x){
+  s<-dbeta(x,9,9)/3.34
+  return(s)
+}
+GH.roy<-function(x){
+  s<-dgamma(x,4,8)/1.8
+  return(s)
+}
+FC.Sum.Roy<-function(x){#use FCs
+  s<-dbeta(x,9,21)/4.784
+  return(s)
+}
+FC.Win.Roy<-function(x){#use FC
+  s<-dbeta(x,14,9)/3.894
+  return(s)
+}
+SC.Sum.roy<-function(x){
+  s<-dbeta(x,8,58.6667)/10.3594
+  return(s)
+}
+SC.Win.roy<-function(x){
+  s<-dbeta(x,9,9)/3.33847
+  return(s)
+}
+BG.Roy<-function(x){
+  s<-dbeta(x,9,27)/5.571042
+  return(s)
+}
+##need to create two functions 1 for summer and another for winter and then determine the best habitat by finding areas which have both in "close proximity".  This won't work at the individual pixel level but will if function is applied over a focal area and the minimum of the two season finctions is used for the HSI value. 
+
+TC.roy<-function(rtc,w){#input is a raster layer and not the values of a raster layer and w is a matrix and frac is the proportion of the focal area you want to average
+  TCS<-function(x){#function that loops through each value in the focal area and gives a suitability score for summer
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-TC.Sum.roy(x[i]*961)#function that gives the individual suitability score
+    }
+    avgy<-mean(sort(y)[eval(.5*length(y)):length(y)])#averages the top 50% of the scores in the focal area
+    return(avgy)
+  }
+  TCW<-function(x){
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-TC.Win.roy(x[i]*961)
+    }
+    avgy<-mean(sort(y)[eval(.8*length(y)):length(y)])
+    return(avgy)
+  }
+  avgTCS<-values(focal(rtc,w,fun=TCS,pad=TRUE,padValue=0))  #assigns each cell the average of the best 50% in acre
+  avgTCW<-values(focal(rtc,w,fun=TCW,pad=TRUE,padValue=0))
+  m<-rep(0,length(avgTCS))
+  for(i in 1:length(avgTCS)){
+    m[i]<-min(avgTCS[i],avgTCW[i])
+  }
+  return(m) 
+}
+TC.Roy<-TC.roy(simB[[11]],w=mat)#result is a numeric vector
+SC.roy<-function(rtc,w){#replicate the TC function for SC
+  SCS<-function(x){
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-SC.Sum.roy(x[i]*961)
+    }
+    avgy<-mean(sort(y)[eval(.5*length(y)):length(y)])#averages the top 50% of the scores in the focal area
+    return(avgy)
+  }
+  SCW<-function(x){
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-SC.Win.roy(x[i]*961)
+    }
+    avgy<-mean(sort(y)[eval(.5*length(y)):length(y)])
+    return(avgy)
+  }
+  avgSCS<-values(focal(rtc,w,fun=SCS,pad=TRUE,padValue=0))  
+  avgSCW<-values(focal(rtc,w,fun=SCW,pad=TRUE,padValue=0))
+  m<-rep(0,length(avgSCS))
+  for(i in 1:length(avgSCS)){
+    m[i]<-min(avgSCS[i],avgSCW[i])
+  }
+  return(m) 
+}
+SC.Roy<-SC.roy(simB[[8]],w=mat)
+ 
+FC.roy<-function(fc,fcs){
+  s<-min(FC.Sum.Roy(fcs),FC.Win.Roy(fc))
+  return(s)
+}
+Food.roy<-function(gd,gc,fd,fc,fcs){
+  s<-(((GD.roy(gd)*GC.roy(gc))^.5)+((FD.roy(fd)*FC.roy(fc,fcs))^.5)+SC.Roy)/3
+  return(s)
+}
+Cover.roy<-function(fh,gh,fc,fcs,gc){
+  s<-(FH.roy(fh)+GH.roy(gh)+FC.roy(fc,fcs)+GC.roy(gc)+TC.Roy+SC.Roy)/6
+  return(s)
+}
+HSI.roy<-function(gd,gc,fd,fc,fcs,fh,gh){
+  f<-Food.roy(gd,gc,fd,fc,fcs)
+  c<-Cover.roy(fh,gh,fc,fcs,gc)
+  s<-rep(0,length(f))
+  for(i in 1:length(f)){
+    s[i]<-min(f[i],c[i])
+  }
+  return(s)
+}
+S.Roy<-HSI.roy(gd=values(simB[[6]]),gc=values(simB[[5]]),fd=values(simB[[3]]),fc=values(simB[[2]]),fcs=values(simB[[21]]),fh=values(simB[[4]]),gh=values(simB[[7]]))
+
+S.Roy.Layer<-simB[[1]]
+values(S.Roy.Layer)<-S.Roy
+win.metafile(filename="RoyHSIPredPlot")
+plot(S.Roy.Layer,main="Habitat Suitability Index Map \n Based on Roy Tomlinson")
+dev.off()
+
+HSI.r<-cbind(rasterToPoints(S.Roy.Layer),rep("Roy_Tomlinson",length(S.Roy)))
+HSI.data1<-rbind(HSI.data1,HSI.r)
+
+HSIbyAuth<-cbind(HSIbyAuth,S.Roy)
+colnames(HSIbyAuth)<-c(colnames(HSIbyAuth[,1:5]),"Roy_Tomlinson")
+@
+Low levels of tree cover in the current simulation cause the TC value in Roy's HSI to be very low, higher tree values would help significantly.  For this simulation, with mean tree cover at 0.09,  only the winter tree cover estimates make any difference to the value of tree cover.  It will be interesting to see which season is driving down the suitability scores so I will model each separately below.\\
+<<RoyHSIbySumWin>>=
+SCS<-function(x){
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-SC.Sum.roy(x[i]*961)
+    }
+    avgy<-mean(sort(y)[eval(.5*length(y)):length(y)])#averages the top 50% of the scores in the focal area
+    return(avgy)
+}
+SCW<-function(x){
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-SC.Win.roy(x[i]*961)
+    }
+    avgy<-mean(sort(y)[eval(.5*length(y)):length(y)])
+    return(avgy)
+}
+avgSCS<-values(focal(simB[[8]],w=mat,fun=SCS,pad=TRUE,padValue=0))  
+avgSCW<-values(focal(simB[[8]],w=mat,fun=SCW,pad=TRUE,padValue=0))
+TCS<-function(x){#function that loops through each value in the focal area and gives a suitability score for summer
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-TC.Sum.roy(x[i]*961)#function that gives the individual suitability score
+    }
+    avgy<-mean(sort(y)[eval(.5*length(y)):length(y)])#averages the top 50% of the scores in the focal area
+    return(avgy)
+  }
+  TCW<-function(x){
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-TC.Win.roy(x[i]*961)
+    }
+    avgy<-mean(sort(y)[eval(.8*length(y)):length(y)])
+    return(avgy)
+  }
+avgTCS<-values(focal(simB[[11]],w=mat,fun=TCS,pad=TRUE,padValue=0)) 
+avgTCW<-values(focal(simB[[11]],w=mat,fun=TCW,pad=TRUE,padValue=0))
+
+Food.roy.s<-function(gd,gc,fd,fc,fcs){
+  s<-(((GD.roy(gd)*GC.roy(gc))^.5)+((FD.roy(fd)*FC.roy(fc,fcs))^.5)+avgSCS)/3
+  return(s)
+}
+Cover.roy.s<-function(fh,gh,fc,fcs,gc){
+  s<-(FH.roy(fh)+GH.roy(gh)+FC.roy(fc,fcs)+GC.roy(gc)+avgTCS+avgSCS)/6
+  return(s)
+}
+HSI.roy.s<-function(gd,gc,fd,fc,fcs,fh,gh){
+  f<-Food.roy.s(gd,gc,fd,fc,fcs)
+  c<-Cover.roy.s(fh,gh,fc,fcs,gc)
+  s<-rep(0,length(f))
+  for(i in 1:length(f)){
+    s[i]<-min(f[i],c[i])
+  }
+  return(s)
+}
+S.Roy.s<-HSI.roy.s(gd=values(simB[[6]]),gc=values(simB[[5]]),fd=values(simB[[3]]),fc=values(simB[[2]]),fcs=values(simB[[21]]),fh=values(simB[[4]]),gh=values(simB[[7]]))
+
+S.Roy.s.Layer<-simB[[1]]
+values(S.Roy.s.Layer)<-S.Roy.s
+
+Food.roy.w<-function(gd,gc,fd,fc,fcs){
+  s<-(((GD.roy(gd)*GC.roy(gc))^.5)+((FD.roy(fd)*FC.roy(fc,fcs))^.5)+avgSCW)/3
+  return(s)
+}
+Cover.roy.w<-function(fh,gh,fc,fcs,gc){
+  s<-(FH.roy(fh)+GH.roy(gh)+FC.roy(fc,fcs)+GC.roy(gc)+avgTCW+avgSCW)/6
+  return(s)
+}
+HSI.roy.w<-function(gd,gc,fd,fc,fcs,fh,gh){
+  f<-Food.roy.w(gd,gc,fd,fc,fcs)
+  c<-Cover.roy.w(fh,gh,fc,fcs,gc)
+  s<-rep(0,length(f))
+  for(i in 1:length(f)){
+    s[i]<-min(f[i],c[i])
+  }
+  return(s)
+}
+S.Roy.w<-HSI.roy.w(gd=values(simB[[6]]),gc=values(simB[[5]]),fd=values(simB[[3]]),fc=values(simB[[2]]),fcs=values(simB[[21]]),fh=values(simB[[4]]),gh=values(simB[[7]]))
+
+S.Roy.w.Layer<-simB[[1]]
+values(S.Roy.w.Layer)<-S.Roy.w
+win.metafile(filename="RoyHSIPredPlotSummer")
+plot(S.Roy.s.Layer,main="Habitat Suitability Index Map \n Based on Roy Tomlinson (Summer)")
+dev.off()
+win.metafile(filename="RoyHSIPredPlotWinter")
+plot(S.Roy.w.Layer,main="Habitat Suitability Index Map \n Based on Roy Tomlinson (Winter)")
+dev.off()
+
+HSI.r.w<-cbind(rasterToPoints(S.Roy.w.Layer),rep("Winter",length(S.Roy.s)))
+HSI.r.s<-cbind(rasterToPoints(S.Roy.s.Layer),rep("Summer",length(S.Roy.s)))
+colnames(HSI.r.w)<-colnames(HSI.r.s)<-c("X","Y","Suitability","Season")
+
+roy.sw<-rbind(HSI.r.w,HSI.r.s)
+roy.sw<-as.data.frame(roy.sw)
+
+roy.sw$Suitability<-as.numeric(as.character(roy.sw$Suitability))
+roy.sw$X<-as.numeric(as.character(roy.sw$X))
+roy.sw$Y<-as.numeric(as.character(roy.sw$Y))
+
+require(ggplot2)
+swplot<-ggplot(data=roy.sw,aes(x=X,y=Y))+geom_tile(aes(fill=Suitability))+scale_fill_gradient2(midpoint=.4,low="#996633",mid="yellow",high="green")+scale_x_continuous(breaks=seq(0,100,25))
+swplot<-swplot+facet_wrap(~Season)
+win.metafile(filename="RoyHSIPredPlotSumVsWin")
+swplot
+dev.off()
+#HSI.data1<-rbind(HSI.data1,HSI.r.w,HSI.r.s)
+@
+Finally, to make it easier to compare with the other maps I will calculate for each season without the buffer for tree and shrub.
+<<RoyNoBuffer>>=
+Food.roy.s.nb<-function(gd,gc,fd,fc,fcs,sc){
+  s<-(((GD.roy(gd)*GC.roy(gc))^.5)+((FD.roy(fd)*FC.roy(fc,fcs))^.5)+SC.Sum.roy(sc))/3
+  return(s)
+}
+Cover.roy.s.nb<-function(fh,gh,fc,fcs,gc,tc,sc){
+  s<-(FH.roy(fh)+GH.roy(gh)+FC.roy(fc,fcs)+GC.roy(gc)+TC.Sum.roy(tc)+SC.Sum.roy(sc))/6
+  return(s)
+}
+HSI.roy.s.nb<-function(gd,gc,fd,fc,fcs,fh,gh,tc,sc){
+  f<-Food.roy.s.nb(gd,gc,fd,fc,fcs,sc)
+  c<-Cover.roy.s.nb(fh,gh,fc,fcs,gc,tc,sc)
+  s<-rep(0,length(f))
+  for(i in 1:length(f)){
+    s[i]<-min(f[i],c[i])
+  }
+  return(s)
+}
+S.Roy.s.nb<-HSI.roy.s.nb(gd=values(simB[[6]]),gc=values(simB[[5]]),fd=values(simB[[3]]),fc=values(simB[[2]]),fcs=values(simB[[21]]),fh=values(simB[[4]]),gh=values(simB[[7]]),tc=values(simB[[11]]),sc=values(simB[[8]]))
+
+S.Roy.s.nb.Layer<-simB[[1]]
+values(S.Roy.s.nb.Layer)<-S.Roy.s.nb
+
+Food.roy.w.nb<-function(gd,gc,fd,fc,fcs,sc){
+  s<-(((GD.roy(gd)*GC.roy(gc))^.5)+((FD.roy(fd)*FC.roy(fc,fcs))^.5)+SC.Win.roy(sc))/3
+  return(s)
+}
+Cover.roy.w.nb<-function(fh,gh,fc,fcs,gc,tc,sc){
+  s<-(FH.roy(fh)+GH.roy(gh)+FC.roy(fc,fcs)+GC.roy(gc)+TC.Win.roy(tc)+SC.Win.roy(sc))/6
+  return(s)
+}
+HSI.roy.w.nb<-function(gd,gc,fd,fc,fcs,fh,gh,tc,sc){
+  f<-Food.roy.w.nb(gd,gc,fd,fc,fcs,sc)
+  c<-Cover.roy.w.nb(fh,gh,fc,fcs,gc,tc,sc)
+  s<-rep(0,length(f))
+  for(i in 1:length(f)){
+    s[i]<-min(f[i],c[i])
+  }
+  return(s)
+}
+S.Roy.w.nb<-HSI.roy.w.nb(gd=values(simB[[6]]),gc=values(simB[[5]]),fd=values(simB[[3]]),fc=values(simB[[2]]),fcs=values(simB[[21]]),fh=values(simB[[4]]),gh=values(simB[[7]]),tc=values(simB[[11]]),sc=values(simB[[8]]))
+
+S.Roy.w.nb.Layer<-simB[[1]]
+values(S.Roy.w.nb.Layer)<-S.Roy.w.nb
+win.metafile(filename="RoyHSIPredPlotSummbernb")
+plot(S.Roy.s.nb.Layer,main="Habitat Suitability Index Map \n Based on Roy Tomlinson (Summer nb)")
+dev.off()
+win.metafile(filename="RoyHSIPredPlotWinternb")
+plot(S.Roy.w.nb.Layer,main="Habitat Suitability Index Map \n Based on Roy Tomlinson (Winter nb)")
+dev.off()
+@
+<<EllisHSFunction>>=
+GC3.ellis<-function(x){#corresponds to GC3 in the HSI use GCb
+  s<-dbeta(x,5,20)/5.155
+  return(s)
+}
+GC1.ellis<-function(x){#use same gc as other models (GC)
+  s<-pbeta(x,3,3.1)
+  return(s)
+}
+GC2.ellis<-function(x){#use GCv
+  s<-7*dgamma(x,shape=2.5,rate=.4)
+  return(s)
+}
+GD.ellis<-function(x){
+  s<-pgamma(x,22.5,rate=1)
+  return(s)
+}
+FD.ellis<-function(x){
+  s<-pgamma(x,22.5,rate=1)
+  return(s)
+}
+ShD.ellis<-function(x){
+  s<-pgamma(x,11,rate=1)#Ellis Shrub Diversity#
+  return(s)
+}
+FH.ellis<-function(x){
+  s<-ifelse(x<33,((x^2)/1089),ifelse(x>80,1+(-pgamma(x,115,rate=1,scale=1,)),(x/x)))
+  return(s)
+}
+SH.ellis<-function(x){
+  s<-dnorm(x,1,.43)
+  return(s)
+}
+TC.ellis<-function(x){
+  s<-1-pbeta(x,3,3.1)
+  return(s)
+}
+GH.ellis<-function(x){
+  s<-dgamma(x,shape=2,rate=4)/1.5
+  return(s)
+}
+Struct.div.ellis<-function(x){
+  s<-pgamma(x,shape=7.5,rate=.5)#Structural Diversity measured as Number of Species
+  return(s)
+}
+Winter.total.cover.ellis<-function(x){#use TotalC
+  s<-dbeta(x,3,7)/2.9
+  return(s)
+}
+Summer.total.cover.ellis<-function(x){
+  s<-dbeta(x,4,4)/2.2
+  return(s)
+}
+#need to calculate GC1, GC2, and GC3, suitability for each pixel
+gc1<-GC1.ellis(values(simB[[5]]))
+gc2<-GC2.ellis(values(simB[[22]]))
+gc3<-GC3.ellis(values(simB[[23]]))
+#now need to calculate single score for GC for each pixel
+GC.Ellis<-(gc1+gc2+gc3)/3
+#Now need to calculate total cover for each pixel and turn it into a raster layer
+Total.Ellis<-function(gc,fc,sc){
+  t<-gc+fc+sc
+  t.l<-simB[[1]]
+  values(t.l)<-t
+  return(t)
+}
+Total.E.L<-simB[[1]]
+values(Total.E.L)<-Total.Ellis(gc=values(simB[[5]]),fc=values(simB[[2]]),sc=values(simB[[8]]))
+
+#need to make new total cover variable which averages summer and winter suitability similar to what I did for Roy
+Cover.ellis<-function(rtc,w){#replicate the TC function for SC
+  TCS<-function(x){
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-Winter.total.cover.ellis(x[i]*961)
+    }
+    avgy<-mean(sort(y)[eval(.5*length(y)):length(y)])#averages the top 50% of the scores in the focal area
+    return(avgy)
+  }
+  TCW<-function(x){
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-Summer.total.cover.ellis(x[i]*961)
+    }
+    avgy<-mean(sort(y)[eval(.5*length(y)):length(y)])
+    return(avgy)
+  }
+  avgCS<-values(focal(rtc,w,fun=TCS,pad=TRUE,padValue=0))  
+  avgCW<-values(focal(rtc,w,fun=TCW,pad=TRUE,padValue=0))
+  m<-rep(0,length(avgCS))
+  for(i in 1:length(avgCS)){
+    m[i]<-min(avgCS[i],avgCW[i])
+  }
+  return(m) 
+}
+Cover.Ellis<-Cover.ellis(Total.E.L,w=mat)
+
+SD.ellis<-function(fd,gd,sd){
+  s<-(FD.ellis(fd)+GD.ellis(gd)+ShD.ellis(sd))/3
+  return(s)
+}
+GC.ellis<-function(gc,gcv,gcb){# already used in the calculation for total cover in the simulation
+  g<-(GC1.ellis(gc)+GC2.ellis(gcv)+GC3.ellis(gcb))/3
+  return(g)
+}
+Pred.ellis<-function(fh,gh,sh,tc,fd,gd,sd){
+  p<-(((FH.ellis(fh)+GH.ellis(gh)+SH.ellis(sh)+GC.Ellis+Cover.Ellis+TC.ellis(tc))/6)*SD.ellis(fd,gd,sd))^.5
+  return(p)
+}
+HSI.ellis<-function(fh,gh,sh,tc,fd,gd,sd){
+  p<-Pred.ellis(fh,gh,sh,tc,fd,gd,sd)
+  f<-SD.ellis(fd,gd,sd)
+  s<-rep(0,length(f))
+  for(i in 1:length(p)){
+    s[i]<-min(p[i],f[i])
+  }
+  return(s)
+}
+S.Ellis<-HSI.ellis(fh=values(simB[[4]]),gh=values(simB[[7]]),sh=values(simB[[10]]),tc=values(simB[[11]]),fd=values(simB[[3]]),gd=values(simB[[6]]),sd=values(simB[[9]]))
+S.Ellis.Layer<-StrD.m
+values(S.Ellis.Layer)<-S.Ellis
+win.metafile(filename="EllisHSIPredPlot")
+plot(S.Ellis.Layer,main="Habitat Suitability Index Map \n Based on Dave Ellis")
+dev.off()
+
+HSI.s<-cbind(rasterToPoints(S.Ellis.Layer),rep("Dave_Ellis",length(S.Ellis)))
+HSI.data1<-rbind(HSI.data1,HSI.s)
+
+HSIbyAuth<-cbind(HSIbyAuth,S.Ellis)
+colnames(HSIbyAuth)<-c(colnames(HSIbyAuth[,1:6]),"Dave_Ellis")
+
+@
+I will parse this out to summer and winter like I did for Roy Tomlinson.\\
+<<EllisbySumWin>>=
+CS<-function(x){
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-Winter.total.cover.ellis(x[i]*961)
+    }
+    avgy<-mean(sort(y)[eval(.5*length(y)):length(y)])#averages the top 50% of the scores in the focal area
+    return(avgy)
+}
+CW<-function(x){
+    y<-rep(0,length(x))
+    for(i in 1:length(x)){
+      y[i]<-Summer.total.cover.ellis(x[i]*961)
+    }
+    avgy<-mean(sort(y)[eval(.5*length(y)):length(y)])
+    return(avgy)
+}
+avgCS<-values(focal(Total.E.L,w=mat,fun=CS,pad=TRUE,padValue=0))  
+avgCW<-values(focal(Total.E.L,w=mat,fun=CW,pad=TRUE,padValue=0))
+Pred.ellis.s<-function(fh,gh,sh,tc,fd,gd,sd){
+  p<-(((FH.ellis(fh)+GH.ellis(gh)+SH.ellis(sh)+GC.Ellis+avgCS+TC.ellis(tc))/6)*SD.ellis(fd,gd,sd))^.5
+  return(p)
+}
+HSI.ellis.s<-function(fh,gh,sh,tc,fd,gd,sd){
+  p<-Pred.ellis.s(fh,gh,sh,tc,fd,gd,sd)
+  f<-SD.ellis(fd,gd,sd)
+  s<-rep(0,length(f))
+  for(i in 1:length(p)){
+    s[i]<-min(p[i],f[i])
+  }
+  return(s)
+}
+S.Ellis.s<-HSI.ellis.s(fh=values(simB[[4]]),gh=values(simB[[7]]),sh=values(simB[[10]]),tc=values(simB[[11]]),fd=values(simB[[3]]),gd=values(simB[[6]]),sd=values(simB[[9]]))
+S.Ellis.s.Layer<-StrD.m
+values(S.Ellis.s.Layer)<-S.Ellis.s
+
+Pred.ellis.w<-function(fh,gh,sh,tc,fd,gd,sd){
+  p<-(((FH.ellis(fh)+GH.ellis(gh)+SH.ellis(sh)+GC.Ellis+avgCW+TC.ellis(tc))/6)*SD.ellis(fd,gd,sd))^.5
+  return(p)
+}
+HSI.ellis.w<-function(fh,gh,sh,tc,fd,gd,sd){
+  p<-Pred.ellis.w(fh,gh,sh,tc,fd,gd,sd)
+  f<-SD.ellis(fd,gd,sd)
+  s<-rep(0,length(f))
+  for(i in 1:length(p)){
+    s[i]<-min(p[i],f[i])
+  }
+  return(s)
+}
+S.Ellis.w<-HSI.ellis.w(fh=values(simB[[4]]),gh=values(simB[[7]]),sh=values(simB[[10]]),tc=values(simB[[11]]),fd=values(simB[[3]]),gd=values(simB[[6]]),sd=values(simB[[9]]))
+S.Ellis.w.Layer<-StrD.m
+values(S.Ellis.w.Layer)<-S.Ellis.w
+win.metafile(filename="EllisHSIPredPlotSummer")
+plot(S.Ellis.s.Layer,main="Habitat Suitability Index Map \n Based on Dave Ellis (Summer)")
+dev.off()
+win.metafile(filename="EllisHSIPredPlotWinter")
+plot(S.Ellis.w.Layer,main="Habitat Suitability Index Map \n Based on Dave Ellis (Winter)")
+dev.off()
+
+
+@
+The two seasons have identical suitability so there is no need to repeat without the buffer (I don't think.)\\
+<<literatureHSI>>=
+FC.King<-function(fc){
+  s<-dnorm(values(fc),32.39,2.55)*6.391949
+  return(s)
+}
+BG.King<-function(bg){
+  s<-dnorm(values(bg),11.3,1.04)*2.606894
+  return(s)
+}
+WC.King<-function(sc,tc){
+  tsc<-values(tc)+values(sc)
+  s<-dnorm(tsc,12.38,1.6)*4.010919
+  return(s)
+}
+
+WSD.King<-function(tc,sc){#Need to infer this input variable from woody cover within 200 sq.m. of the pixel (7x7 pixels=196 m^2) and make woody stem density variable with the focal function (inputs to this function should be raster layers)
+  mat2<-matrix(rep(1/49,49),7,7)
+  WSD<-function(tc,sc){#function to create woody stem density variable
+    rtsc<-tc+sc
+    count.ws<-function(x){
+      ns<-rep(0,length(x))
+      for(i in 1:length(x)){
+        ns[i]<-(x[i]/.8)*4*49 #number of stems per m^2 assumes 1 stem is 80% coverage and multiply by 4 m^2 in pixel (plus multiply by the matrix dimension 49 to avoid problem with focus function)
+      }
+      count<-sum(ns)
+      return(count)
+    }
+    wsd<-focal(rtsc,w=mat2,fun=count.ws,pad=TRUE,padValue=0)
+    return(wsd)
+  }
+  wsd<-WSD(tc,sc)
+  s<-dnorm(values(wsd),47.1,10.62)*26.62039
+  return(s)
+}
+
+NF.King<-function(fc){#need to infer this cover variable from forb cover (NF=fc*10 assumes that a sinlge forb will have ~10% cover therefore 20% cover will have 2 forbs)
+  nf<-8*values(fc)
+  y<-ifelse(nf<2.32,dnorm(nf,2.32,.18)/2.202707,ifelse(nf>3.58,dnorm(nf,3.58,.31)/1.284235,1))
+  return(y)
+}
+
+WC.func<-function(x){
+  y<-ifelse(x<15,y<-dnorm(x,27.5,12.5)*51.65914,ifelse(x>40,y<-dnorm(x,27.5,12.5)*51.65914,y<-1))
+  return(y)
+}
+WC.Guthery.az<-function(x){
+  s<-dnorm(x,15,15)*37.59943
+  return(s)
+}
+Disc<-function(fc,gc,sc,tc){#disc of vulnerability in 100's of square meters. Could create this as a function of total cover for the simulation.  Since the disc of vulnerability should be inversely proportional to the amount of cover I will add up all the cover variables and divide this sum into 13 to cover the range of the function derived from Guthery et al. and make the function discriminating over the range of values.
+  d<-13/(values(fc)+values(gc)+values(sc)+values(tc))
+  s<-1-pnorm(d,15,4)
+  return(s)
+}
+Cone.mx<-function(fc,gc,sc,tc,fh,ghc,sh){#Cone of vulnerability in mils of cubic meters.  Used a combination of cover variables and height variables to create an inverse function where the greater the cover and the higher the veg the lower the cone of vulnerability is 
+  d<-(values(fc)+values(gc)+values(sc)+values(tc))
+  c<-((values(fh)/100)+values(ghc)+values(sh))/3
+  cv<-3/(d+c)
+  s<-(1-pnorm(cv,1.25,.3))
+  return(s)
+}
+Cone.az<-function(fc,gc,sc,tc,fh,ghc,sh){
+  d<-(values(fc)+values(gc)+values(sc)+values(tc))
+  c<-((values(fh)/100)+values(ghc)+values(sh))/3
+  cv<-4/(d+c)
+  s<-1-pnorm(cv,.75,.15)
+  return(s)
+}
+BG.Guthery<-function(x){
+  bg<-values(x)*100
+  s<-(1-pnorm(bg,30,5))
+  return(s)
+}
+#Temp<-curve(1-pnorm(x,25,3),0,40,ylab="Suitability",xlab="Operative Temperature (deg.C)")#ignore for now
+GD.Simms<-function(x){
+    s<-pnorm(values(x),7,1.5)
+  return(s)
+}
+FD.Simms<-function(fd){
+  s<-pnorm(values(fd),7,1.5)
+  return(s)
+}
+TD.Simms<-function(rtc){#input should be a raster layer, percent cover is the area 1 tree covers in a pixel (tree density not diversity)
+  mat3<-matrix(rep(1/2401,2401),49,49)
+  count<-function(x){
+  c<-rep(0,length(x))
+    for(i in 1:length(x)){
+      c[i]<-ifelse(x[i]*2401>(.12),1,0)
+    }
+    cnt<-sum(c)
+    return(cnt)
+  }
+  nt<-focal(rtc,w=mat3,fun=count,pad=TRUE,padValue=0)
+  s<-dnorm(values(nt),150,15)*37.59942
+  return(s)
+}
+
+VO.Simms<-function(ghc,gc,fh,fc,sh,sc,tc){#need to infer a function from the cover and height variables here
+  vcg<-ifelse(values(ghc)>=1,values(gc),0)#calculate cover at 1m height
+  vcf<-ifelse(values(fh)>=1,values(fc),0)
+  vcs<-ifelse(values(sh)>=1,values(sc),0)
+  vo<-(vcg+vcf+vcs+values(tc))*100 #add tree cover and multiply by 100 to get percent for function
+  s<-(pnorm(vo,83,5))
+  return(s)
+}
+GCa.Simms<-function(x){#use GC for aerial cover
+  s<-dnorm(values(x),50,12)*30.07954
+  return(s)
+}
+GCb.Simms<-function(x){#we will assume if aerial cover is good visual cover is also good so ignore this function for basal grass cover for now
+  #s<-dnorm(x,30,9)*22.55965 <-original function for basal grass cover, will replace with aerial function for now
+  s<-dnorm(values(x),50,12)*30.07954
+  return(s)
+}
+FC.Simms<-function(x){
+  fc<-values(x)*100
+  s<-dnorm(fc,15,4)*10.02651
+  return(s)
+}
+TSC.Simms<-function(tc,sc){
+  tsc<-(values(tc)+values(sc))*100
+  s<-dnorm(tsc,10,3)*7.519885
+  return(s)
+}
+HSC.Simms<-function(hsc){# What she really means by this is the percent cover of rabbit brush.  
+  s<-(1-pnorm(values(hsc),1.3,.5))
+  return(s)
+}
+LLG.Simms<-function(gdp,gc){#we will make this a function of grass diversity and cover and assume that LLG is dominant on the landscape.  Therefore, if there is only 1 perennial grass spp we will assume it is LLG.  If there are two or more spp then we will assume there is a 70%? chance one of them is LLG.  We will then multiply the probability of LLG by the total grass cover at that point to get the amount LLG cover for a pixel.
+  pllg<-ifelse(round(values(gdp),0)==1,100,.7^(round(values(gdp))))
+  cllg<-pllg*values(gc)
+  s<-(1-pnorm(cllg,1.3,.5))
+  return(s)
+}
+
+Woody.MX<-function(tc,sc){#input layers not values
+  tsc<-values(tc)+values(sc)
+  s<-(WSD.King(tc,sc)+WC.func(tsc)+TSC.Simms(tc,sc)+TD.Simms(tc))/4
+  return(s)
+}
+Woody.AZ<-function(tc,sc){#input layers not values
+  tsc<-values(tc)+values(sc)
+  s<-(WSD.King(tc,sc)+WC.Guthery.az(tsc)+TSC.Simms(tc,sc)+TD.Simms(tc))/4
+  return(s)
+}
+Visual.AZ<-function(fc,gc,sc,tc,fh,ghc,sh){
+  s<-(Disc(fc,gc,sc,tc)+Cone.az(fc,fc,sc,tc,fh,ghc,sh)+VO.Simms(ghc,gc,fh,fc,sh,sc,tc))/3
+  return(s)
+}
+Visual.MX<-function(fc,gc,sc,tc,fh,ghc,sh){
+  s<-(Disc(fc,gc,sc,tc)+Cone.mx(fc,fc,sc,tc,fh,ghc,sh)+VO.Simms(ghc,gc,fh,fc,sh,sc,tc))/3
+  return(s)
+}
+Forbs<-function(fc,fd){
+  s<-(NF.King(fc)+FD.Simms(fd)+(FC.Simms(fc)+FC.King(fc))/2)/3
+  return(s)
+}
+Grasses<-function(gc,gd,gdp){
+  s<-(GCa.Simms(gc)+GCb.Simms(gc)+LLG.Simms(gdp,gc)+GD.Simms(gd))/4
+  return(s)
+}
+Cover.MX<-function(fc,fd,fh,ghc,sh,tc,sc,hsc,gc,gd,gdp,bg){
+  s<-(Woody.MX(tc,sc)+Visual.MX(fc,gc,sc,tc,fh,ghc,sh)+Forbs(fc,fd)+Grasses(gc,gd,gdp)+HSC.Simms(hsc)+((BG.King(bg)+BG.Guthery(bg))/2))/6
+  return(s)
+}
+Cover.AZ<-function(fc,fd,fh,ghc,sh,tc,sc,hsc,gc,gd,gdp,bg){
+  s<-(Woody.AZ(tc,sc)+Visual.AZ(fc,gc,sc,tc,fh,ghc,sh)+Forbs(fc,fd)+Grasses(gc,gd,gdp)+HSC.Simms(hsc)+((BG.King(bg)+BG.Guthery(bg))/2))/6
+  return(s)
+}
+Food<-function(fc,fd,gc,gd,gdp,hsc){
+  s<-(Forbs(fc,fd)+Grasses(gc,gd,gdp)+HSC.Simms(hsc))/3
+  return(s)
+}
+Reproduction.MX<-function(tc,sc,fc,fd){
+  s<-(Woody.MX(tc,sc)+Forbs(fc,fd))/2
+  return(s)
+}
+Reproduction.AZ<-function(tc,sc,fc,fd){
+  s<-(Woody.AZ(tc,sc)+Forbs(fc,fd))/2
+  return(s)
+}
+HSI.MX<-function(fc,fh,fd,ghc,sh,tc,sc,hsc,gc,gd,gdp,bg){
+  r<-Reproduction.MX(tc,sc,fc,fd)
+  f<-Food(fc,fd,gc,gd,gdp,hsc)
+  c<-Cover.MX(fc,fd,fh,ghc,sh,tc,sc,hsc,gc,gd,gdp,bg)
+  s<-rep(0,length(r))
+  for(i in 1:length(r)){
+    s[i]<-min(r[i],f[i],c[i])
+  }
+  return(s)
+}
+HSI.AZ<-function(fc,fh,fd,ghc,sh,tc,sc,hsc,gc,gd,gdp,bg){
+  r<-Reproduction.AZ(tc,sc,fc,fd)
+  f<-Food(fc,fd,gc,gd,gdp,hsc)
+  c<-Cover.AZ(fc,fd,fh,ghc,sh,tc,sc,hsc,gc,gd,gdp,bg)
+  s<-rep(0,length(r))
+  for(i in 1:length(s)){
+    s[i]<-min(r[i],f[i],c[i])
+  }
+  return(s)
+}
+Lit.HSI.AZ<-HSI.AZ(fc=simB$FC,fh=simB$FH,fd=simB$FD,ghc=simB$GHc,sh=simB$SH,tc=simB$TC,sc=simB$SC,hsc=simB$HSC,gc=simB$GC,gd=simB$GD,gdp=simB$GDp,bg=simB$BG)
+Lit.HSI.MX<-HSI.MX(fc=simB$FC,fh=simB$FH,fd=simB$FD,ghc=simB$GHc,sh=simB$SH,tc=simB$TC,sc=simB$SC,hsc=simB$HSC,gc=simB$GC,gd=simB$GD,gdp=simB$GDp,bg=simB$BG)
+
+Lit.HSI.AZ.L<-simB[[1]]
+values(Lit.HSI.AZ.L)<-Lit.HSI.AZ
+Lit.HSI.MX.L<-simB[[1]]
+values(Lit.HSI.MX.L)<-Lit.HSI.MX
+win.metafile(filename="LitHSIPredPlotAZ")
+plot(Lit.HSI.AZ.L,main="Habitat Suitability Index Map \n Based on the Literature (AZ)")
+dev.off()
+win.metafile(filename="LitHSIPredPlotMX")
+plot(Lit.HSI.MX.L,main="Habitat Suitability Index Map \n Based on the Literature (MX)")
+dev.off()
+
+HSI.lit.a<-cbind(rasterToPoints(Lit.HSI.AZ.L),rep("Literature_AZ",length(Lit.HSI.AZ)))
+HSI.lit.m<-cbind(rasterToPoints(Lit.HSI.MX.L),rep("Literature_MX",length(Lit.HSI.AZ)))
+HSI.data1<-rbind(HSI.data1,HSI.lit.a,HSI.lit.m)
+
+HSIl<-cbind(Lit.HSI.AZ,Lit.HSI.MX)
+colnames(HSIl)<-c("Literature_AZ","Literature_MX")
+HSIbyAuth<-cbind(HSIbyAuth,HSIl)
+
+@
+The overall suitability scores from the literature are very low for this data set.  Further inquiry to see what layers are having the biggest impact will be useful for the final report.\\
+<<plotLayersofLitHSI>>=
+r.mx<-Reproduction.MX(tc=simB$TC,sc=simB$SC,fc=simB$FC,fd=simB$FD)
+r.az<-Reproduction.AZ(tc=simB$TC,sc=simB$SC,fc=simB$FC,fd=simB$FD)
+r.az.l<-simB[[1]]
+values(r.az.l)<-r.az
+r.mx.l<-simB[[1]]
+values(r.mx.l)<-r.mx
+win.metafile(filename="LitRepHSIAZ")
+plot(r.az.l,main="Habitat Suitability Index Map \n for Reproduction  (AZ)")
+dev.off()
+win.metafile(filename="LitRepHSIMX")
+plot(r.mx.l,main="Habitat Suitability Index Map \n for Reproduction (MX)")
+dev.off()
+
+f<-Food(fc=simB$FC,fd=simB$FD,gc=simB$GC,gd=simB$GD,gdp=simB$GDp,hsc=simB$HSC)
+f.l<-simB[[1]]
+values(f.l)<-f
+win.metafile(filename="LitFoodHSI")
+plot(f.l,main="Habitat Suitability Index Map \n for Food")
+dev.off()
+
+c.az<-Cover.AZ(fc=simB$FC,fh=simB$FH,fd=simB$FD,ghc=simB$GHc,sh=simB$SH,tc=simB$TC,sc=simB$SC,hsc=simB$HSC,gc=simB$GC,gd=simB$GD,gdp=simB$GDp,bg=simB$BG)
+c.mx<-Cover.MX(fc=simB$FC,fh=simB$FH,fd=simB$FD,ghc=simB$GHc,sh=simB$SH,tc=simB$TC,sc=simB$SC,hsc=simB$HSC,gc=simB$GC,gd=simB$GD,gdp=simB$GDp,bg=simB$BG)
+c.az.l<-c.mx.l<-simB[[1]]
+values(c.az.l)<-c.az
+values(c.mx.l)<-c.mx
+win.metafile(filename="LitCoverHSIAZ")
+plot(c.az.l,main="Habitat Suitability Index Map \n for Cover (AZ)")
+dev.off()
+win.metafile(filename="LitCoverHSIMX")
+plot(c.mx.l,main="Habitat Suitability Index Map \n for Cover (MX)")
+dev.off()
+s.az<-rep(0,length(values(f.l)))
+for(i in 1:length(s.az)){
+  s.az[i]<-min(c.az[i],f[i],r.az[i])
+}
+s.mx<-rep(0,length(values(f.l)))
+for(i in 1:length(s.mx)){
+  s.mx[i]<-min(c.mx[i],f[i],r.mx[i])
+}
+s.az.l<-s.mx.l<-simB[[1]]
+values(s.az.l)<-s.az
+values(s.mx.l)<-s.mx
+r.az.data<-cbind(rasterToPoints(r.az.l),rep("Reproduction_AZ",length(values(r.az.l))))
+r.mx.data<-cbind(rasterToPoints(r.mx.l),rep("Reproduction_MX",length(values(r.mx.l))))
+f.az.data<-cbind(rasterToPoints(f.l),rep("Food_AZ",length(values(f.l))))
+f.mx.data<-cbind(rasterToPoints(f.l),rep("Food_MX",length(values(f.l))))
+c.az.data<-cbind(rasterToPoints(c.az.l),rep("Cover_AZ",length(values(c.az.l))))
+c.mx.data<-cbind(rasterToPoints(c.mx.l),rep("Cover_MX",length(values(c.mx.l))))
+s.az.data<-cbind(rasterToPoints(s.az.l),rep("Overall_AZ",length(values(s.az.l))))
+s.mx.data<-cbind(rasterToPoints(s.mx.l),rep("Overall_MX",length(values(s.mx.l))))
+l.data<-rbind(r.az.data,r.mx.data,f.az.data,f.mx.data,c.az.data,c.mx.data,s.az.data,s.mx.data)
+colnames(l.data)<-c("X","Y","Suitability","Component")
+l.data<-as.data.frame(l.data)
+l.data$Suitability<-as.numeric(as.character(l.data$Suitability))
+l.data$X<-as.numeric(as.character(l.data$X))
+l.data$Y<-as.numeric(as.character(l.data$Y))
+l.data$Component<-factor(l.data$Component,levels=c("Reproduction_AZ","Reproduction_MX","Cover_AZ","Cover_MX","Food_AZ","Food_MX","Overall_AZ","Overall_MX"))
+l.plot<-ggplot(data=l.data,aes(x=X,y=Y))+geom_tile(aes(fill=Suitability))+scale_fill_gradient2(midpoint=.4,low="#996633",mid="yellow",high="green")+scale_x_continuous(breaks=seq(0,100,25))+facet_wrap(~Component,ncol=2)
+win.metafile(filename="LitbyComponent")
+l.plot
+dev.off()
+@
+
+It will probably be useful to demonstrate the whole process with maps in the final report. I.e. show the suitability for each variable for one author then show them combined, and combined again until we get the final product.\\
+<<SuitabilityPredictions>>=
+require(MASS)
+write.matrix(HSI.data1,file="C:\\Users\\dominic\\Documents\\Work\\Current Projects\\MBQ\\SimulateMBQhabitat\\pred3.csv",sep=",")
+HSIbyAuth<-write.matrix(HSIbyAuth,file="C:\\Users\\dominic\\Documents\\Work\\Current Projects\\MBQ\\SimulateMBQhabitat\\HSIbyAuth3.csv",sep=",")
+@
+
+<<panelPlot>>=
+#HSI.data1<-read.csv("C:\\Users\\dominic\\Documents\\Work\\Current Projects\\MBQ\\SimulateMBQhabitat\\pred1.csv")
+#setwd("C:/Users/dominic/Documents/Work/Current Projects/MBQ/PredictionPlotsFromSimulations/Suitability1")
+require(ggplot2)
+
+HSI.data1<-as.data.frame(HSI.data1)
+names(HSI.data1)<-c("X","Y","Suitability","Author")
+HSI.data1$Suitability<-as.numeric(as.character(HSI.data1$Suitability))
+HSI.data1$X<-as.numeric(as.character(HSI.data1$X))
+HSI.data1$Y<-as.numeric(as.character(HSI.data1$Y))
+
+all.plot<-ggplot(data=HSI.data1,aes(x=X,y=Y))+geom_tile(aes(fill=Suitability))+scale_fill_gradient2(midpoint=.4,low="#996633",mid="yellow",high="green")+scale_x_continuous(breaks=seq(0,100,25))
+win.metafile(filename="AllPlot")
+all.plot+facet_wrap(~Author)
+dev.off()
+@
+\end{document}

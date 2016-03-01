@@ -1,0 +1,1257 @@
+\documentclass{article}
+
+\begin{document}
+
+<<FrontMatter>>=
+beta<-function(m,a)
+{b<-(a-m*a)/m
+return(b)}
+
+gamma<-function(m,a)
+{b<-a/m
+return(b)}
+require(MASS)
+require(ggplot2)
+theme_set(theme_bw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank()))
+@
+
+Combined graphs#######################################################################################
+<<combinedGC>>=
+GCX<-c(seq(0,1,length.out=1001))
+GCX.dat<-matrix(GCX,11011,1)
+X<-seq(0,1,0.001)
+
+FC.Mary.fun<-function(x){
+  ifelse(x<.15,y<-dbeta(x,1.1,1)*1.099001,y<-1)
+}
+GC.Mary<-FC.Mary.fun(GCX)
+mary.mat<-matrix(c(rep("Mary",1001),GC.Mary),1001,2)
+
+GC.p.sd<-function(X)
+{ifelse(X<=.55,Y<-1.818182*X,Y<-dbeta(X,5,4.090909)/2.351513)
+return(Y)}
+GC1<-GC.p.sd(seq(0,.55,length.out=550))
+GC2<-GC.p.sd(seq(.551,1,length.out=451))
+GC.P.sd<-c(GC1,GC2)
+sdp.mat<-matrix(c(rep("Dan Cohan",1001),GC.P.sd),1001,2)
+
+GC.A.sd<-dbeta(X,2,3)/1.79
+sda.mat<-matrix(c(rep("Sall Gall",1001),GC.A.sd),1001,2)
+
+GCM.Goodwin<-(.5+dbeta(GCX,10,70))/11.56455
+M.goodwin.mat<-matrix(c(rep("MX_Goodwin",1001),GCM.Goodwin),1001,2)
+
+GCA.Goodwin<-function(X)
+{ifelse(X<=.28,Y<-dbeta(X,15,60)/8.8,Y<-.2)
+return(Y)}
+GCval1<-GCA.Goodwin(seq(0,.28,length.out=280))
+GCval2<-c(GCA.Goodwin(.29),rep(GCA.Goodwin(1),720))
+GCgoodwin<-c(GCval1,GCval2)
+A.goodwin.mat<-matrix(c(rep("John Goodwin",1001),GCgoodwin),1001,2)
+
+GCroy<-dbeta(X,9,9)/3.34
+roy.mat<-matrix(c(rep("Roy Tomlinson",1001),GCroy),1001,2)
+
+GCellis<-dbeta(X,5,20)/5.155
+ellis.mat<-matrix(c(rep("Dave Ellis",1001),GCellis),1001,2)
+
+GC.P.AZ.avg<-(GCroy+GC.P.sd+GCgoodwin+GCellis+GC.Mary)/5
+GC.P.AZ.mat<-matrix(c(rep("AZ_P_avg",1001),GC.P.AZ.avg),1001,2)
+
+GC.A.AZ.avg<-(GCroy+GC.A.sd+GCgoodwin+GCellis+GC.Mary)/5
+GC.A.AZ.mat<-matrix(c(rep("AZ_A_avg",1001),GC.A.AZ.avg),1001,2)
+
+GC.P.MX.avg<-(GCroy+GC.P.sd+GCM.Goodwin+GCellis+GC.Mary)/5
+GC.P.MX.mat<-matrix(c(rep("MX_P_avg",1001),GC.P.MX.avg),1001,2)
+
+GC.A.MX.avg<-(GCroy+GC.A.sd+GCM.Goodwin+GCellis+GC.Mary)/5
+GC.A.MX.mat<-matrix(c(rep("MX_A_avg",1001),GC.A.MX.avg),1001,2)
+
+GC.all.cols<-matrix(c(GCX,GCgoodwin,GCM.Goodwin,GCroy,GC.P.sd,GC.A.sd,GCellis,GC.Mary),1001,8)
+colnames(GC.all.cols)<-c("GC","AZ_Goodwin","MX_Goodwin","Roy","P_SD","A_SD","Ellis","Mary")
+GC.all.mat<-rbind(roy.mat,A.goodwin.mat,M.goodwin.mat,sdp.mat,sda.mat,ellis.mat,mary.mat,GC.P.AZ.mat,GC.A.AZ.mat,GC.P.MX.mat,GC.A.MX.mat)
+GC.data<-matrix(c(GCX.dat,GC.all.mat),11011,3)
+colnames(GC.data)<-c("GC","Expert","Suitability")
+
+write.matrix(GC.data,file="C:\\Users\\dominic\\Documents\\Work\\GC_data.csv",sep=",")
+write.matrix(GC.all.cols,file="C:\\Users\\dominic\\Documents\\Work\\GC_cols.csv",sep=",")
+GC_cols<-read.csv("C:\\Users\\dominic\\Documents\\Work\\GC_cols.csv")
+GC_data<-read.csv("C:\\Users\\dominic\\Documents\\Work\\GC_Data.csv")
+
+GC.AZ.P.mean.plot<-qplot(X,Suitability,data=GC_data[GC_data$Expert=="AZ_P_avg            ",],geom="line",xlab="Perrenial Grass Cover in Arizona")
+GC.AZ.A.mean.plot<-qplot(X,Suitability,data=GC_data[GC_data$Expert=="AZ_A_avg            ",],geom="line",xlab="Annual Grass Cover in Arizona")
+GC.MX.P.mean.plot<-qplot(X,Suitability,data=GC_data[GC_data$Expert=="MX_P_avg            ",],geom="line",xlab="Perrenial Grass Cover in Mexico")
+GC.MX.A.mean.plot<-qplot(X,Suitability,data=GC_data[GC_data$Expert=="MX_A_avg            ",],geom="line",xlab="Annual Grass Cover in Mexico")
+
+##make errors for GC
+Index<-1:1001
+
+GC.AZ.P.Upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GC.AZ.P.Upper[i]=max(GC_cols$AZ_Goodwin[ind],GC_cols$Roy[ind],GC_cols$P_SD[ind],GC_cols$Ellis[ind],GC_cols$Mary[ind])
+  }
+GC.AZ.P.Lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GC.AZ.P.Lower[i]=min(GC_cols$AZ_Goodwin[ind],GC_cols$Roy[ind],GC_cols$P_SD[ind],GC_cols$Ellis[ind],GC_cols$Mary[ind])
+  }
+GC.AZ.A.Upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GC.AZ.A.Upper[i]=max(GC_cols$AZ_Goodwin[ind],GC_cols$Roy[ind],GC_cols$A_SD[ind],GC_cols$Ellis[ind],GC_cols$Mary[ind])
+  }
+GC.AZ.A.Lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GC.AZ.A.Lower[i]=min(GC_cols$AZ_Goodwin[ind],GC_cols$Roy[ind],GC_cols$A_SD[ind],GC_cols$Ellis[ind],GC_cols$Mary[ind])
+  }
+GC.MX.P.Upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GC.MX.P.Upper[i]=max(GC_cols$MX_Goodwin[ind],GC_cols$Roy[ind],GC_cols$P_SD[ind],GC_cols$Ellis[ind],GC_cols$Mary[ind])
+  }
+GC.MX.P.Lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GC.MX.P.Lower[i]=min(GC_cols$MX_Goodwin[ind],GC_cols$Roy[ind],GC_cols$P_SD[ind],GC_cols$Ellis[ind],GC_cols$Mary[ind])
+  }
+GC.MX.A.Upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GC.MX.A.Upper[i]=max(GC_cols$MX_Goodwin[ind],GC_cols$Roy[ind],GC_cols$A_SD[ind],GC_cols$Ellis[ind],GC_cols$Mary[ind])
+  }
+GC.MX.A.Lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GC.MX.A.Lower[i]=min(GC_cols$MX_Goodwin[ind],GC_cols$Roy[ind],GC_cols$A_SD[ind],GC_cols$Ellis[ind],GC_cols$Mary[ind])
+  }
+Upper.GC2<-ifelse(GC_cols$GC<=.174,Upper.GC2<-Upper.GC,ifelse(GC_cols$GC>=.578,Upper.GC2<-Upper.GC,Upper.GC2<-1))
+
+GC.AZ.A.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=GC.AZ.A.Lower,ymax=GC.AZ.A.Upper))
+GC.AZ.P.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=GC.AZ.P.Lower,ymax=GC.AZ.P.Upper))
+GC.MX.A.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=GC.MX.A.Lower,ymax=GC.MX.A.Upper))
+GC.MX.P.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=GC.MX.P.Lower,ymax=GC.MX.P.Upper))
+
+GC.AZ.P.uncertainty<-GC.AZ.P.mean.plot+GC.AZ.P.error
+GC.AZ.P.uncertainty
+GC.AZ.A.uncertainty<-GC.AZ.A.mean.plot+GC.AZ.A.error
+GC.AZ.A.uncertainty
+GC.MX.P.uncertainty<-GC.MX.P.mean.plot+GC.MX.P.error
+GC.MX.P.uncertainty
+GC.MX.A.uncertainty<-GC.MX.A.mean.plot+GC.MX.A.error
+GC.MX.A.uncertainty
+
+GC.AZ.P.area<-sum(GC.AZ.P.Upper)-sum(GC.AZ.P.Lower)
+GC.AZ.P.area
+GC.AZ.A.area<-sum(GC.AZ.A.Upper)-sum(GC.AZ.A.Lower)
+GC.AZ.A.area
+GC.MX.P.area<-sum(GC.MX.P.Upper)-sum(GC.MX.P.Lower)
+GC.MX.P.area
+GC.MX.A.area<-sum(GC.MX.A.Upper)-sum(GC.MX.A.Lower)
+GC.MX.A.area
+@
+
+<<combinedGD>>=
+GDX<-c(seq(0,40,.01))
+GDX.dat<-matrix(GDX,44011,1)
+
+GD.Mary<-pgamma(GDX,10,1.428571)
+GD.mary.mat<-matrix(c(rep("Mary",4001),GD.Mary),4001,2)
+
+GD.ellis<-pgamma(GDX,22.5,rate=1)
+GD.ellis.mat<-matrix(c(rep("Dave Ellis",4001),GD.ellis),4001,2)
+
+GDM.goodwin<-pgamma(GDX,shape=2,rate=.444)
+GDM.goodwin.mat<-matrix(c(rep("John Goodwin MX",4001),GDM.goodwin),4001,2)
+
+GDA.goodwin<-pgamma(GDX,shape=5,rate=.476)
+GDA.goodwin.mat<-matrix(c(rep("John Goodwin AZ",4001),GDA.goodwin),4001,2)
+
+GD.P.sd<-pgamma(GDX,7,2.3333)
+GD.P.sd.mat<-matrix(c(rep("P_SD",4001),GD.P.sd),4001,2)
+
+GD.A.sd<-pgamma(GDX,5,2.5)
+GD.A.sd.mat<-matrix(c(rep("A_SD",4001),GD.A.sd),4001,2)
+
+GD.roy<-pgamma(GDX,24,rate=1)
+GD.roy.mat<-matrix(c(rep("Roy",4001),GD.roy),4001,2)
+
+GD.AZ.P.avg<-(GD.roy+GD.P.sd+GDA.goodwin+GD.ellis+GD.Mary)/5
+GD.AZ.P.avg.mat<-matrix(c(rep("AZ_P_avg",4001),GD.AZ.P.avg),4001,2)
+
+GD.AZ.A.avg<-(GD.roy+GD.A.sd+GDA.goodwin+GD.ellis+GD.Mary)/5
+GD.AZ.A.avg.mat<-matrix(c(rep("AZ_A_avg",4001),GD.AZ.A.avg),4001,2)
+
+GD.MX.P.avg<-(GD.roy+GD.P.sd+GDM.goodwin+GD.ellis+GD.Mary)/5
+GD.MX.P.avg.mat<-matrix(c(rep("MX_P_avg",4001),GD.MX.P.avg),4001,2)
+
+GD.MX.A.avg<-(GD.roy+GD.A.sd+GDM.goodwin+GD.ellis+GD.Mary)/5
+GD.MX.A.avg.mat<-matrix(c(rep("MX_A_avg",4001),GD.MX.A.avg),4001,2)
+
+GD.all.mat<-rbind(GD.roy.mat,GD.P.sd.mat,GD.A.sd.mat,GDA.goodwin.mat,GDM.goodwin.mat,GD.ellis.mat,GD.mary.mat,GD.AZ.P.avg.mat,GD.AZ.A.avg.mat,GD.MX.P.avg.mat,GD.MX.A.avg.mat)
+GD.data<-matrix(c(GDX.dat,GD.all.mat),44011,3)
+colnames(GD.data)<-c("GD","Expert","Suitability")
+GD.data1<-as.data.frame(GD.data,header=TRUE,stringsAsFactors=FALSE)
+GD.all.cols<-matrix(c(GD.roy,GD.A.sd,GD.P.sd,GDM.goodwin,GDA.goodwin,GD.ellis,GD.Mary),4001,7)
+colnames(GD.all.cols)<-c("Roy","A_SD","P_SD","MX_Goodwin","AZ_Goodwin","Ellis","Mary")
+
+write.matrix(GD.data1,file="C:\\Users\\dominic\\Documents\\Work\\GD_data.csv",sep=",")
+write.matrix(GD.all.cols,file="C:\\Users\\dominic\\Documents\\Work\\GD_cols.csv",sep=",")
+GD_data<-read.csv("C:\\Users\\dominic\\Documents\\Work\\GD_Data.csv")
+GD_cols<-read.csv("C:\\Users\\dominic\\Documents\\Work\\GD_cols.csv")
+               
+GD.AZ.A.plot<-qplot(GD,Suitability,data=GD_data[GD_data$Expert=="AZ_A_avg            ",],geom="line",xlab="Annual Grass Diversity in Arizona")
+GD.AZ.P.plot<-qplot(GD,Suitability,data=GD_data[GD_data$Expert=="AZ_P_avg            ",],geom="line",xlab="Perrenial Grass Diversity in Arizona")
+GD.MX.A.plot<-qplot(GD,Suitability,data=GD_data[GD_data$Expert=="MX_A_avg            ",],geom="line",xlab="Annual Grass Diversity in Mexico")
+GD.MX.P.plot<-qplot(GD,Suitability,data=GD_data[GD_data$Expert=="MX_P_avg            ",],geom="line",xlab="Perrenial Grass Diversity in Mexico")
+
+Index<-1:4001
+GD.AZ.P.Upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GD.AZ.P.Upper[i]=max(GD_cols$AZ_Goodwin[ind],GD_cols$Roy[ind],GD_cols$P_SD[ind],GD_cols$Ellis[ind],GD_cols$Mary[ind])
+  }
+GD.AZ.P.Lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GD.AZ.P.Lower[i]=min(GD_cols$AZ_Goodwin[ind],GD_cols$Roy[ind],GD_cols$P_SD[ind],GD_cols$Ellis[ind],GD_cols$Mary[ind])
+  }
+GD.AZ.A.Upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GD.AZ.A.Upper[i]=max(GD_cols$AZ_Goodwin[ind],GD_cols$Roy[ind],GD_cols$A_SD[ind],GD_cols$Ellis[ind],GD_cols$Mary[ind])
+  }
+GD.AZ.A.Lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GD.AZ.A.Lower[i]=min(GD_cols$AZ_Goodwin[ind],GD_cols$Roy[ind],GD_cols$A_SD[ind],GD_cols$Ellis[ind],GD_cols$Mary[ind])
+  }
+GD.MX.P.Upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GD.MX.P.Upper[i]=max(GD_cols$MX_Goodwin[ind],GD_cols$Roy[ind],GD_cols$P_SD[ind],GD_cols$Ellis[ind],GD_cols$Mary[ind])
+  }
+GD.MX.P.Lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GD.MX.P.Lower[i]=min(GD_cols$MX_Goodwin[ind],GD_cols$Roy[ind],GD_cols$P_SD[ind],GD_cols$Ellis[ind],GD_cols$Mary[ind])
+  }
+GD.MX.A.Upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GD.MX.A.Upper[i]=max(GD_cols$MX_Goodwin[ind],GD_cols$Roy[ind],GD_cols$A_SD[ind],GD_cols$Ellis[ind],GD_cols$Mary[ind])
+  }
+GD.MX.A.Lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GD.MX.A.Lower[i]=min(GD_cols$MX_Goodwin[ind],GD_cols$Roy[ind],GD_cols$A_SD[ind],GD_cols$Ellis[ind],GD_cols$Mary[ind])
+  }
+GD.AZ.P.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=GD.AZ.P.Lower,ymax=GD.AZ.P.Upper))
+GD.AZ.A.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=GD.AZ.A.Lower,ymax=GD.AZ.A.Upper))
+GD.MX.P.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=GD.MX.P.Lower,ymax=GD.MX.P.Upper))
+GD.MX.A.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=GD.MX.A.Lower,ymax=GD.MX.A.Upper))
+
+GD.AZ.P.uncertainty<-GD.AZ.P.plot+GD.AZ.P.error
+GD.AZ.A.uncertainty<-GD.AZ.A.plot+GD.AZ.A.error
+GD.MX.P.uncertainty<-GD.MX.P.plot+GD.MX.P.error
+GD.MX.A.uncertainty<-GD.MX.A.plot+GD.MX.A.error
+
+GD.AZ.P.uncertainty
+GD.AZ.A.uncertainty
+GD.MX.P.uncertainty
+GD.MX.A.uncertainty
+
+GD.AZ.P.area<-(sum(GD.AZ.P.Upper)-sum(GD.AZ.P.Lower))/4
+GD.AZ.P.area
+GD.AZ.A.area<-(sum(GD.AZ.A.Upper)-sum(GD.AZ.A.Lower))/4
+GD.AZ.A.area
+GD.MX.P.area<-(sum(GD.MX.P.Upper)-sum(GD.MX.P.Lower))/4
+GD.MX.P.area
+GD.MX.A.area<-(sum(GD.MX.A.Upper)-sum(GD.MX.A.Lower))/4
+GD.MX.A.area
+@ 
+
+
+
+<<combinedFD>>=
+FDX<-c(seq(0,40,length.out=4001))
+FDX.dat<-matrix(FDX,24006,1)
+
+FD.Mary<-pgamma(GDX,20,2)
+FD.mary.mat<-matrix(c(rep("Mary",4001),FD.Mary),4001,2)
+
+FD.ellis<-pgamma(FDX,22.5,rate=1)
+FD.ellis.mat<-matrix(c(rep("Dave Ellis",4001),FD.ellis),4001,2)
+
+FD.Goodwin<-function(x)
+{ifelse(x<=4.9,Y<-.2+(x/5.5)^2,ifelse(x>15,Y<-1+(-pgamma(x,shape=64,rate=2.35)),Y<-(x/x)))
+return(Y)}
+FD1<-FD.Goodwin(seq(0,4.9,.01))
+FD2<-FD.Goodwin(seq(4.91,15,.01))
+FD3<-FD.Goodwin(seq(15.01,30.05,.01))
+FD4<-rep(.2,995)
+FDval<-c(FD1,FD2,FD3,FD4)
+FD.Goodwin.mat<-matrix(c(rep("John Goodwin",4001),FDval),4001,2)
+
+FD.sd<-pgamma(FDX,22.5,rate=1)
+FD.sd.mat<-matrix(c(rep("Sally and Dan",4001),FD.sd),4001,2)
+
+FD.roy<-pgamma(FDX,25.5,rate=1)
+FD.roy.mat<-matrix(c(rep("Roy Tomlinson",4001),FD.roy),4001,2)
+
+FD.Avg<-((FD.ellis+FDval+FD.sd+FD.roy+FD.Mary)/5)
+FD.Avg.mat<-matrix(c(rep("Average",4001),FD.Avg),4001,2)
+
+FD.all.mat<-rbind(FD.roy.mat,FD.sd.mat,FD.Goodwin.mat,FD.ellis.mat,FD.mary.mat,FD.Avg.mat)
+FD.data<-matrix(c(FDX.dat,FD.all.mat),24006,3)
+colnames(FD.data)<-c("FD","Expert","Suitability")
+FD.data1<-as.data.frame(FD.data,header=TRUE,stringsAsFactors=FALSE)
+FD.all.cols<-matrix(c(FDX,FDval,FD.roy,FD.sd,FD.ellis,FD.Mary,FD.Avg),4001,7)
+colnames(FD.all.cols)<-c("X","Goodwin","Roy","SD","Ellis","Mary","Avg")
+
+write.matrix(FD.data1,file="C:\\Users\\dominic\\Documents\\Work\\FD_data.csv",sep=",")
+write.matrix(FD.all.cols,file="C:\\Users\\dominic\\Documents\\Work\\FD_cols.csv",sep=",")
+
+FD_data<-read.csv("C:\\Users\\dominic\\Documents\\Work\\FD_Data.csv")
+FD_cols<-read.csv("C:\\Users\\dominic\\Documents\\Work\\FD_cols.csv")
+
+all.plot<-qplot(FD,Suitability,data=FD_data,geom=c("line"),colour=Expert,xlab="Forb Diversity")
+all.plot
+
+FD.nm.plot1<-qplot(FD,Suitability,data=FD_data[!FD_data$Expert=="Average             ",],geom=c("line"),colour=Expert,xlab="Forb Diversity")+guides(colour=FALSE)
+FD.nm.plot1
+FD.mean.plot<-qplot(FD,Suitability,data=FD_data[FD_data$Expert=="Average             ",],geom=c("line"),xlab="Forb Diversity")
+FD.mean.plot
+
+##make errors for FD
+Index<-1:4001
+Upper.FD<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    Upper.FD[i]=max(FD_cols$Goodwin[ind],FD_cols$Roy[ind],FD_cols$SD[ind],FD_cols$Ellis[ind],FD_cols$Mary[ind])
+  }
+Lower.FD<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    Lower.FD[i]=min(FD_cols$Goodwin[ind],FD_cols$Roy[ind],FD_cols$SD[ind],FD_cols$Ellis[ind],FD_cols$Mary[ind])
+  }
+FD.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=Lower.FD,ymax=Upper.FD))
+FD.uncertainty<-FD.mean.plot+FD.error
+FD.uncertainty
+FD.area<-(sum(Upper.FD)-sum(Lower.FD))/4
+FD.area
+@
+
+
+
+<<ShrubDiversityCombined>>=
+ShDX<-seq(0,30,.01)
+ShD.ellis<-pgamma(ShDX,11,rate=1)#Ellis Shrub Diversity#
+
+STD.Mary<-pgamma(ShDX,2,.8)#Mary tree/shrub diversity
+
+ShD.avg<-matrix(c((STD.Mary+ShD.ellis)/2,ShDX),3001,2)
+colnames(ShD.avg)<-c("Suitability","X")
+ShD.avg<-as.data.frame(ShD.avg)
+
+ShD<-matrix(c(ShD.ellis,STD.Mary),6002,1)
+colnames(ShD)<-"Suitability"
+ShD<-as.data.frame(ShD)
+
+ShD.plot<-qplot(X,Suitability,data=ShD.avg,geom="line")+geom_ribbon(fill="red",alpha=.2,aes(ymin=ShD.ellis,ymax=STD.Mary))
+ShD.plot
+
+ShD.area<-(sum(STD.Mary)-sum(ShD.ellis))/3
+ShD.area
+@
+
+
+
+<<ForbHeightCombined>>=
+FHX<-seq(0,200,.1)
+FHX.dat<-matrix(c(rep(FHX,6)),12006,1)
+
+FH.ellis<-function(x)
+{ifelse(x<33,Y<-((x^2)/1089),ifelse(x>80,Y<-1+(-pgamma(x,115,rate=1,scale=1,)),Y<-(x/x)))
+return(Y)}
+FHval1<-FH.ellis(seq(0,32.9,.1))
+FHval2<-FH.ellis(seq(33,80,.1))
+FHval3<-FH.ellis(seq(80.1,200,.1))
+FHval<-c(FHval1,FHval2,FHval3)
+FH.ellis.mat<-matrix(c(rep("Ellis",2001),FHval),2001,2)
+
+FH.Spring.sd<-1+(-pgamma(FHX,13,rate=1))
+FH.Spring.mat<-matrix(c(rep("Sally/Dan-Spring",2001),FH.Spring.sd),2001,2)
+
+FH.Fall.sd<-pgamma(FHX,13,rate=1)
+FH.Fall.mat<-matrix(c(rep("Sally/Dan-Fall",2001),FH.Fall.sd),2001,2)
+
+FH.roy<-dgamma(FHX/100,4,8)/1.8
+FH.roy.mat<-matrix(c(rep("Roy",2001),FH.roy),2001,2)
+
+FH.Avg.spring<-(FH.roy+FH.Spring.sd+FHval)/3
+FH.Avg.spring.mat<-matrix(c(rep("Spring Average",2001),FH.Avg.spring),2001,2)
+
+FH.Avg.Fall<-(FH.roy+FH.Fall.sd+FHval)/3
+FH.Avg.Fall.mat<-matrix(c(rep("Fall Average",2001),FH.Avg.Fall),2001,2)
+
+FH.all.mat<-rbind(FH.roy.mat,FH.Fall.mat,FH.Spring.mat,FH.ellis.mat,FH.Avg.spring.mat,FH.Avg.Fall.mat)
+FH.data<-matrix(c(FHX.dat,FH.all.mat),12006,3)
+colnames(FH.data)<-c("FH","Expert","Suitability")
+FH.data1<-as.data.frame(FH.data,header=TRUE,stringsAsFactors=FALSE)
+FH.all.cols<-matrix(c(FHX,FHval,FH.roy,FH.Fall.sd,FH.Spring.sd,FH.Avg.spring,FH.Avg.Fall),2001,7)
+colnames(FH.all.cols)<-c("X","Ellis","Roy","Fall_SD","Spring_SD","Avg-Spring","Avg.Fall")
+write.matrix(FH.data1,file="C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\FH_data.csv",sep=",")
+write.matrix(FH.all.cols,file="C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\FH_cols.csv",sep=",")
+FH_data<-read.csv("C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\FH_Data.csv")
+FH_cols<-read.csv("C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\FH_cols.csv")
+
+FH_data_Fall1<-FH_data[!FH_data$Expert=="Sally/Dan-Spring    ",]
+FH_data_Fall<-FH_data_Fall1[!FH_data_Fall1$Expert=="Spring Average      ",]
+FH.Fall.plot<-qplot(FH,Suitability,data=FH_data_Fall,geom=c("line"),colour=Expert,xlab="Forb Height")
+FH.Fall.plot
+
+FH_data_Spring1<-FH_data[!FH_data$Expert=="Sally/Dan-Fall      ",]
+FH_data_Spring<-FH_data_Spring1[!FH_data_Spring1$Expert=="Fall Average        ",]
+FH.Spring.plot<-qplot(FH,Suitability,data=FH_data_Spring,geom=c("line"),colour=Expert,xlab="Forb Height")
+FH.Spring.plot
+
+
+FH.Fall.mean.plot<-qplot(FH,Suitability,data=FH_data[FH_data$Expert=="Fall Average        ",],geom=c("line"),xlab="Forb Height")
+FH.Fall.mean.plot
+FH.Spring.mean.plot<-qplot(FH,Suitability,data=FH_data_Spring[FH_data_Spring$Expert=="Spring Average      ",],geom=c("line"),xlab="Forb Height")
+FH.Spring.mean.plot
+
+##make errors for FD
+Index<-1:2001
+Upper.FH.Fall<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    Upper.FH.Fall[i]=max(FH_cols$Ellis[ind],FH_cols$Roy[ind],FH_cols$Fall_SD[ind])
+  }
+Lower.FH.Fall<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    Lower.FH.Fall[i]=min(FH_cols$Ellis[ind],FH_cols$Roy[ind],FH_cols$Fall_SD[ind])
+  }
+Upper.FH.Spring<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    Upper.FH.Spring[i]=max(FH_cols$Ellis[ind],FH_cols$Roy[ind],FH_cols$Spring_SD[ind])
+  }
+Lower.FH.Spring<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    Lower.FH.Spring[i]=min(FH_cols$Ellis[ind],FH_cols$Roy[ind],FH_cols$Spring_SD[ind])
+  }
+FH.error.Fall<-geom_ribbon(fill="red",alpha=.2,aes(ymin=Lower.FH.Fall,ymax=Upper.FH.Fall))
+FH.error.Spring<-geom_ribbon(fill="red",alpha=.2,aes(ymin=Lower.FH.Spring,ymax=Upper.FH.Spring))
+
+FH.uncertainty.Fall<-FH.Fall.mean.plot+FH.error.Fall
+FH.uncertainty.Fall
+FH.uncertainty.Spring<-FH.Spring.mean.plot+FH.error.Spring
+FH.uncertainty.Spring
+
+FH.area.fall<-(sum(Upper.FH.Fall)-sum(Lower.FH.Fall))/2
+FH.area.fall
+FH.area.spring<-(sum(Upper.FH.Spring)-sum(Lower.FH.Spring))/2
+FH.area.spring
+@
+
+
+
+<<ShrubHeightCombined>>=
+SHX<-seq(0,15,.01)
+SHX.dat<-matrix(SHX,4503,1)
+
+SH.ellis<-dnorm(SHX,1,.43)
+SH.ellis.mat<-matrix(c(rep("Ellis",1501),SH.ellis),1501,2)
+
+SH.sd<-dgamma(SHX,10,2.5)*3.05
+SH.sd.mat<-matrix(c(rep("Sally/Dan",1501),SH.sd),1501,2)
+
+SH.Avg<-(SH.ellis+SH.sd)/2
+SH.Avg.mat<-matrix(c(rep("Average",1501),SH.Avg),1501,2)
+
+SH.all.mat<-rbind(SH.ellis.mat,SH.sd.mat,SH.Avg.mat)
+SH.dat<-matrix(c(SHX.dat,SH.all.mat),4503,3)
+colnames(SH.dat)<-c("X","Expert","Suitability")
+SH.cols<-matrix(c(SHX,SH.ellis,SH.sd,SH.Avg),1501)
+colnames(SH.cols)<-c("X","Ellis","Sally_Dan","Average")
+
+write.matrix(SH.dat,file="C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\SH_data.csv",sep=",")
+write.matrix(SH.cols,file="C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\SH_cols.csv",sep=",")
+SH_data<-read.csv("C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\SH_data.csv")
+SH_cols<-read.csv("C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\SH_cols.csv")
+
+SH.plot<-qplot(X,Suitability,data=SH_data,geom=c("line"),colour=Expert,xlab="Shrub Height")
+SH.plot
+SH.mean.plot<-qplot(X,Suitability,data=SH_data[SH_data$Expert=="Average              ",],geom=c("line"),xlab="Shrub Height")
+SH.mean.plot
+
+Index<-1:1501
+Upper.SH<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    Upper.SH[i]=max(SH_cols$Ellis[ind],SH_cols$Sally_Dan[ind])
+  }
+Lower.SH<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    Lower.SH[i]=min(SH_cols$Ellis[ind],SH_cols$Sally_Dan[ind])
+  }
+
+SH.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=Lower.SH,ymax=Upper.SH))
+SH.uncertainty<-SH.mean.plot+SH.error
+SH.uncertainty
+
+SH.area<-(sum(Upper.SH)-sum(Lower.SH))/1.4995
+SH.area
+@
+
+
+
+<<TreeCoverCombined>>=
+TCX<-seq(0,1,.001)
+TCX.dat<-matrix(TCX,1001,1)
+
+TC.ellis<-1-pbeta(TCX,3,3.1)
+TC.ellis.mat<-matrix(c(rep("Ellis",1001),TC.ellis),1001,2)
+
+TC.Mary<-dbeta(TCX,1.3,7.366667)/4.501841
+TC.mary.mat<-matrix(c(rep("Mary",1001),TC.Mary),1001,2)
+
+TCM.Goodwin<-function(x)
+{ifelse(x<=.26,Y<-.1+dbeta(x,15,70.71)/11,Y<-.2)
+return(Y)}
+TCMval1<-TCM.Goodwin(seq(0,.26,.001))
+TCMval2<-rep(TCM.Goodwin(.27),740)
+TCMval<-c(TCMval1,TCMval2)
+TC.Goodwin.M.mat<-matrix(c(rep("Goodwin_MX",1001),TCMval),1001,2)
+
+TCA.Goodwin<-function(x)
+{ifelse(x<=.07,Y<-.2+dbeta(x,10,190)/34,Y<-dbeta(x,10,190)/34)
+return(Y)}
+TCAval1<-TCA.Goodwin(seq(0,.07,.001))
+TCAval2<-TCA.Goodwin(seq(.071,1,.001))
+TCAval<-c(TCAval1,TCAval2)
+TC.Goodwin.A.mat<-matrix(c(rep("Goodwin_AZ",1001),TCAval),1001,2)
+
+TC.up.sd<-dnorm(TCX,.05,.04)/9.973557
+TC.up.sd.mat<-matrix(c(rep("Uplands_SD",1001),TC.up.sd),1001,2)
+
+TC.arroyo.sd<-dnorm(TCX,.3,.18)/2.216346
+TC.arroyo.sd.mat<-matrix(c(rep("Arroyo_SD",1001),TC.arroyo.sd),1001,2)
+
+TC.Sum.roy<-dbeta(TCX,8,58.6667)/10.35954
+TC.Sum.roy.mat<-matrix(c(rep("Summer_roy",1001),TC.Sum.roy),1001,2)
+
+TC.Win.roy<-dbeta(TCX,9,9)/3.34
+TC.Win.roy.mat<-matrix(c(rep("Winter_roy",1001),TC.Win.roy),1001,2)
+
+TC.avg.AZ.up.win<-(TC.ellis+TCMval+TC.up.sd+TC.Sum.roy+TC.Mary)/5
+TC.avg.AZ.up.win.mat<-matrix(c(rep("AZ_UP_W_Avg",1001),TC.avg.AZ.up.win),1001,2)
+
+TC.avg.AZ.up.sum<-(TC.ellis+TCAval+TC.up.sd+TC.Sum.roy+TC.Mary)/5
+TC.avg.AZ.up.sum.mat<-matrix(c(rep("AZ_UP_S_Avg",1001),TC.avg.AZ.up.sum),1001,2)
+
+TC.avg.AZ.ar.sum<-(TC.ellis+TCAval+TC.arroyo.sd+TC.Sum.roy+TC.Mary)/5
+TC.avg.AZ.ar.sum.mat<-matrix(c(rep("AZ_AR_S_Avg",1001),TC.avg.AZ.ar.sum),1001,2)
+
+TC.avg.AZ.ar.win<-(TC.ellis+TCAval+TC.arroyo.sd+TC.Win.roy+TC.Mary)/5
+TC.avg.AZ.ar.win.mat<-matrix(c(rep("AZ_AR_W_Avg",1001),TC.avg.AZ.ar.win),1001,2)
+
+TC.avg.MX.ar.sum<-(TC.ellis+TCMval+TC.arroyo.sd+TC.Sum.roy+TC.Mary)/5
+TC.avg.MX.ar.sum.mat<-matrix(c(rep("MX_AR_S_Avg",1001),TC.avg.MX.ar.sum),1001,2)
+
+TC.avg.MX.up.win<-(TC.ellis+TCMval+TC.up.sd+TC.Win.roy+TC.Mary)/5
+TC.avg.MX.up.win.mat<-matrix(c(rep("MX_UP_W_Avg",1001),TC.avg.MX.up.win),1001,2)
+
+TC.avg.MX.up.sum<-(TC.ellis+TCMval+TC.up.sd+TC.Sum.roy+TC.Mary)/5
+TC.avg.MX.up.sum.mat<-matrix(c(rep("MX_UP_S_Avg",1001),TC.avg.MX.up.sum),1001,2)
+
+TC.avg.MX.ar.win<-(TC.ellis+TCMval+TC.arroyo.sd+TC.Win.roy+TC.Mary)/5
+TC.avg.MX.ar.win.mat<-matrix(c(rep("MX_AR_W_Avg",1001),TC.avg.MX.ar.win),1001,2)
+
+TC.all.mat<-rbind(TC.ellis.mat,TC.Goodwin.M.mat,TC.Goodwin.A.mat,TC.up.sd.mat,TC.arroyo.sd.mat,TC.Sum.roy.mat,TC.Win.roy.mat,TC.mary.mat,TC.avg.AZ.up.win.mat,TC.avg.AZ.up.sum.mat,TC.avg.AZ.ar.sum.mat,TC.avg.AZ.ar.win.mat,TC.avg.MX.ar.sum.mat,TC.avg.MX.up.win.mat,TC.avg.MX.up.sum.mat,TC.avg.MX.ar.win.mat)
+TCX.dat<-matrix(TCX,16016,1)
+
+TC.dat<-matrix(c(TCX.dat,TC.all.mat),16016,3)
+colnames(TC.dat)<-c("X","Expert","Suitability")
+TC.cols<-matrix(c(TCX,TC.ellis,TCMval,TCAval,TC.up.sd,TC.arroyo.sd,TC.Sum.roy,TC.Win.roy,TC.Mary,TC.avg.AZ.up.win,TC.avg.AZ.up.sum,TC.avg.AZ.ar.sum,TC.avg.AZ.ar.win,TC.avg.MX.ar.sum,TC.avg.MX.up.win,TC.avg.MX.up.sum,TC.avg.MX.ar.win),1001)
+colnames(TC.cols)<-c("X","Ellis","Goodwin_MX","Goodwin_AZ","Upland_SD","Arroyo_SD","Summer_Roy","Winter_Roy","Mary","AZ_UP_Win","AZ_UP_Sum","AZ_AR_Sum","AZ_AR_Win","MX_AR_Sum","MX_UP_Win","MX_UP_Sum","MX_AR_Win")
+
+write.matrix(TC.dat,file="C:\\Users\\dominic\\Documents\\Work\\TC_data.csv",sep=",")
+write.matrix(TC.cols,file="C:\\Users\\dominic\\Documents\\Work\\TC_cols.csv",sep=",")
+TC_data<-read.csv("C:\\Users\\dominic\\Documents\\Work\\TC_data.csv")
+TC_cols<-read.csv("C:\\Users\\dominic\\Documents\\Work\\TC_cols.csv")
+
+TC_all_plot<-qplot(X,Suitability,data=TC_data,geom=c("line"),colour=Expert,xlab="Tree Cover")
+TC_all_plot
+
+#Means
+AZ_UP_SUM_mean<-qplot(X,Suitability,data=TC_data[TC_data$Expert=="AZ_UP_S_Avg          ",],geom=c("line"),xlab="Tree Cover(Arizona, Uplands, Summer)")
+AZ_UP_SUM_mean
+AZ_UP_Win_mean<-qplot(X,Suitability,data=TC_data[TC_data$Expert=="AZ_UP_W_Avg          ",],geom=c("line"),xlab="Tree Cover (Arizona, Uplands, Winter)")
+AZ_UP_Win_mean
+AZ_AR_SUM_mean<-qplot(X,Suitability,data=TC_data[TC_data$Expert=="AZ_AR_S_Avg          ",],geom=c("line"),xlab="Tree Cover (Arizona, Arroyos, Summer)")
+AZ_AR_SUM_mean
+AZ_AR_WIN_mean<-qplot(X,Suitability,data=TC_data[TC_data$Expert=="AZ_AR_W_Avg          ",],geom=c("line"),xlab="Tree Cover (Arizona, Arroyos, Winter)")
+AZ_AR_WIN_mean
+MX_UP_SUM_mean<-qplot(X,Suitability,data=TC_data[TC_data$Expert=="MX_UP_S_Avg          ",],geom=c("line"),xlab="Tree Cover (Mexico, Uplands, Summer)")
+MX_UP_SUM_mean
+MX_UP_WIN_mean<-qplot(X,Suitability,data=TC_data[TC_data$Expert=="MX_UP_W_Avg          ",],geom=c("line"),xlab="Tree Cover (Mexico, Uplands, Winter)")
+MX_UP_WIN_mean
+MX_AR_SUM_mean<-qplot(X,Suitability,data=TC_data[TC_data$Expert=="MX_AR_S_Avg          ",],geom=c("line"),xlab="Tree Cover (Mexico, Arroyos, Summer)")
+MX_AR_SUM_mean
+MX_AR_WIN_mean<-qplot(X,Suitability,data=TC_data[TC_data$Expert=="MX_AR_W_Avg          ",],geom=c("line"),xlab="Tree Cover (Mexico, Arroyos, Winter)")
+MX_AR_WIN_mean
+
+#Errors
+Index<-1:1001
+AZ_UP_SUM_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    AZ_UP_SUM_upper[i]=max(TC_cols$Ellis[ind],TC_cols$Goodwin_AZ[ind],TC_cols$Upland_SD[ind],TC_cols$Summer_Roy[ind],TC_cols$Mary[ind])
+  }
+AZ_UP_SUM_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    AZ_UP_SUM_lower[i]=min(TC_cols$Ellis[ind],TC_cols$Goodwin_AZ[ind],TC_cols$Upland_SD[ind],TC_cols$Summer_Roy[ind],TC_cols$Mary[ind])
+  }
+
+AZ_UP_WIN_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    AZ_UP_WIN_upper[i]=max(TC_cols$Ellis[ind],TC_cols$Goodwin_AZ[ind],TC_cols$Upland_SD[ind],TC_cols$Winter_Roy[ind],TC_cols$Mary[ind])
+  }
+AZ_UP_WIN_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    AZ_UP_WIN_lower[i]=min(TC_cols$Ellis[ind],TC_cols$Goodwin_AZ[ind],TC_cols$Upland_SD[ind],TC_cols$Winter_Roy[ind],TC_cols$Mary[ind])
+  }
+
+AZ_AR_SUM_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    AZ_AR_SUM_upper[i]=max(TC_cols$Ellis[ind],TC_cols$Goodwin_AZ[ind],TC_cols$Arroyo_SD[ind],TC_cols$Summer_Roy[ind],TC_cols$Mary[ind])
+  }
+AZ_AR_SUM_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    AZ_AR_SUM_lower[i]=min(TC_cols$Ellis[ind],TC_cols$Goodwin_AZ[ind],TC_cols$Arroyo_SD[ind],TC_cols$Summer_Roy[ind],TC_cols$Mary[ind])
+  }
+
+AZ_AR_WIN_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    AZ_AR_WIN_upper[i]=max(TC_cols$Ellis[ind],TC_cols$Goodwin_AZ[ind],TC_cols$Arroyo_SD[ind],TC_cols$Winter_Roy[ind],TC_cols$Mary[ind])
+  }
+AZ_AR_WIN_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    AZ_AR_WIN_lower[i]=min(TC_cols$Ellis[ind],TC_cols$Goodwin_AZ[ind],TC_cols$Arroyo_SD[ind],TC_cols$Winter_Roy[ind],TC_cols$Mary[ind])
+  }
+
+MX_UP_SUM_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    MX_UP_SUM_upper[i]=max(TC_cols$Ellis[ind],TC_cols$Goodwin_MX[ind],TC_cols$Upland_SD[ind],TC_cols$Summer_Roy[ind],TC_cols$Mary[ind])
+  }
+MX_UP_SUM_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    MX_UP_SUM_lower[i]=min(TC_cols$Ellis[ind],TC_cols$Goodwin_MX[ind],TC_cols$Upland_SD[ind],TC_cols$Summer_Roy[ind],TC_cols$Mary[ind])
+  }
+
+MX_UP_WIN_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    MX_UP_WIN_upper[i]=max(TC_cols$Ellis[ind],TC_cols$Goodwin_MX[ind],TC_cols$Upland_SD[ind],TC_cols$Winter_Roy[ind],TC_cols$Mary[ind])
+  }
+MX_UP_WIN_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    MX_UP_WIN_lower[i]=min(TC_cols$Ellis[ind],TC_cols$Goodwin_MX[ind],TC_cols$Upland_SD[ind],TC_cols$Winter_Roy[ind],TC_cols$Mary[ind])
+  }
+
+MX_AR_SUM_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    MX_AR_SUM_upper[i]=max(TC_cols$Ellis[ind],TC_cols$Goodwin_MX[ind],TC_cols$Arroyo_SD[ind],TC_cols$Summer_Roy[ind],TC_cols$Mary[ind])
+  }
+MX_AR_SUM_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    MX_AR_SUM_lower[i]=min(TC_cols$Ellis[ind],TC_cols$Goodwin_MX[ind],TC_cols$Arroyo_SD[ind],TC_cols$Summer_Roy[ind],TC_cols$Mary[ind])
+  }
+
+MX_AR_WIN_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    MX_AR_WIN_upper[i]=max(TC_cols$Ellis[ind],TC_cols$Goodwin_MX[ind],TC_cols$Arroyo_SD[ind],TC_cols$Winter_Roy[ind],TC_cols$Mary[ind])
+  }
+MX_AR_WIN_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    MX_AR_WIN_lower[i]=min(TC_cols$Ellis[ind],TC_cols$Goodwin_MX[ind],TC_cols$Arroyo_SD[ind],TC_cols$Winter_Roy[ind],TC_cols$Mary[ind])
+  }
+
+AZ_UP_SUM_error<-geom_ribbon(fill="red",alpha=.2,aes(ymax=AZ_UP_SUM_upper,ymin=AZ_UP_SUM_lower))
+AZ_UP_WIN_error<-geom_ribbon(fill="red",alpha=.2,aes(ymax=AZ_UP_WIN_upper,ymin=AZ_UP_WIN_lower))
+AZ_AR_SUM_error<-geom_ribbon(fill="red",alpha=.2,aes(ymax=AZ_AR_SUM_upper,ymin=AZ_AR_SUM_lower))
+AZ_AR_WIN_error<-geom_ribbon(fill="red",alpha=.2,aes(ymax=AZ_AR_WIN_upper,ymin=AZ_AR_WIN_lower))
+MX_UP_SUM_error<-geom_ribbon(fill="red",alpha=.2,aes(ymax=MX_UP_SUM_upper,ymin=MX_UP_SUM_lower))
+MX_UP_WIN_error<-geom_ribbon(fill="red",alpha=.2,aes(ymax=MX_UP_WIN_upper,ymin=MX_UP_WIN_lower))
+MX_AR_SUM_error<-geom_ribbon(fill="red",alpha=.2,aes(ymax=MX_AR_SUM_upper,ymin=MX_AR_SUM_lower))
+MX_AR_WIN_error<-geom_ribbon(fill="red",alpha=.2,aes(ymax=MX_AR_WIN_upper,ymin=MX_AR_WIN_lower))
+AZ_UP_SUM_uncertainty<-AZ_UP_SUM_mean+AZ_UP_SUM_error
+AZ_UP_SUM_uncertainty
+AZ_UP_WIN_uncertainty<-AZ_UP_Win_mean+AZ_UP_WIN_error
+AZ_UP_WIN_uncertainty
+AZ_AR_SUM_uncertainty<-AZ_AR_SUM_mean+AZ_AR_SUM_error
+AZ_AR_SUM_uncertainty
+AZ_AR_WIN_uncertainty<-AZ_AR_WIN_mean+AZ_AR_WIN_error
+AZ_AR_WIN_uncertainty
+
+MX_UP_SUM_uncertainty<-MX_UP_SUM_mean+MX_UP_SUM_error
+MX_UP_SUM_uncertainty
+MX_UP_WIN_uncertainty<-MX_UP_WIN_mean+MX_UP_WIN_error
+MX_UP_WIN_uncertainty
+MX_AR_SUM_uncertainty<-MX_AR_SUM_mean+MX_AR_SUM_error
+MX_AR_SUM_uncertainty
+MX_AR_WIN_uncertainty<-MX_AR_WIN_mean+MX_AR_WIN_error
+MX_AR_WIN_uncertainty
+
+TC.AZ.UP.SUM.area<-sum(AZ_UP_SUM_upper)-sum(AZ_UP_SUM_lower)
+TC.AZ.UP.WIN.area<-sum(AZ_UP_WIN_upper)-sum(AZ_UP_WIN_lower)
+TC.AZ.AR.SUM.area<-sum(AZ_AR_SUM_upper)-sum(AZ_AR_SUM_lower)
+TC.AZ.AR.WIN.area<-sum(AZ_AR_WIN_upper)-sum(AZ_AR_WIN_lower)
+TC.MX.UP.SUM.area<-sum(MX_UP_SUM_upper)-sum(MX_UP_SUM_lower)
+TC.MX.UP.WIN.area<-sum(MX_UP_WIN_upper)-sum(MX_UP_WIN_lower)
+TC.MX.AR.SUM.area<-sum(MX_AR_SUM_upper)-sum(MX_AR_SUM_lower)
+TC.MX.AR.WIN.area<-sum(MX_AR_WIN_upper)-sum(MX_AR_WIN_lower)
+
+TC.AZ.UP.SUM.area
+TC.AZ.UP.WIN.area
+TC.AZ.AR.SUM.area
+TC.AZ.AR.WIN.area
+TC.MX.UP.SUM.area
+TC.MX.UP.WIN.area
+TC.MX.AR.SUM.area
+TC.MX.AR.WIN.area
+@
+
+
+
+<<GrassHeightCombined>>=
+GHX<-seq(0,3,.001)
+
+GH.ellis<-dgamma(GHX,shape=2,rate=4)/1.5
+GH.ellis.mat<-matrix(c(rep("Ellis",3001),GH.ellis),3001,2)
+
+GH.dan<-dnorm(GHX,1.5,.4)
+GH.dan.mat<-matrix(c(rep("Dan",3001),GH.dan),3001,2)
+
+
+GH.sally.cover<-dnorm(GHX,1.17,.46)*1.153049
+GH.sally.cover.mat<-matrix(c(rep("Cover_Sally",3001),GH.sally.cover),3001,2)
+
+GH.sally.nesting<-dnorm(GHX,.5,.14)/2.849588
+GH.sally.nesting.mat<-matrix(c(rep("Nesting_Sally",3001),GH.sally.nesting),3001,2)
+
+GH.roy<-dgamma(GHX,4,8)/1.8
+GH.roy.mat<-matrix(c(rep("Roy",3001),GH.roy),3001,2)
+
+GH.nesting.avg<-(GH.ellis+GH.dan+GH.sally.nesting+GH.roy)/4
+GH.nesting.avg.mat<-matrix(c(rep("Nesting_Avg",3001),GH.nesting.avg),3001,2)
+
+GH.cover.avg<-(GH.ellis+GH.dan+GH.sally.cover+GH.roy)/4
+GH.cover.avg.mat<-matrix(c(rep("Cover_Avg",3001),GH.cover.avg),3001,2)
+
+GH.all.mat<-rbind(GH.ellis.mat,GH.dan.mat,GH.sally.cover.mat,GH.sally.nesting.mat,GH.roy.mat,GH.nesting.avg.mat,GH.cover.avg.mat)
+
+GHX.dat<-matrix(GHX,21007,1)
+
+GH.dat<-matrix(c(GHX.dat,GH.all.mat),21007,3)
+colnames(GH.dat)<-c("X","Expert","Suitability")
+GH.cols<-matrix(c(GHX,GH.ellis,GH.dan,GH.sally.cover,GH.sally.nesting,GH.roy,GH.nesting.avg,GH.cover.avg),3001,8)
+colnames(GH.cols)<-c("X","Ellis","Dan","Cover_Sally","Nesting_Sally","Roy","Nesting_Avg","Cover_Avg")
+
+write.matrix(GH.dat,file="C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\GH_data.csv",sep=",")
+write.matrix(GH.cols,file="C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\GH_cols.csv",sep=",")
+GH_data<-read.csv("C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\GH_data.csv")
+GH_cols<-read.csv("C:\\Users\\dominic\\Documents\\StatsGIDP\\Statistics papers and courses\\STAT 571A\\GH_cols.csv")
+
+all.nesting1<-GH_data[!GH_data$Expert=="Cover_Sally         ",]
+all.nesting<-all.nesting1[!all.nesting1$Expert=="Cover_Avg           ",]
+GH.all.nesting<-qplot(X,Suitability,data=all.nesting,geom="line",colour=Expert,xlab="Grass Height (meters) for Nesting")
+GH.all.nesting
+
+all.cover1<-GH_data[!GH_data$Expert=="Nesting_Sally       ",]
+all.cover<-all.cover1[!all.cover1$Expert=="Nesting_Avg         ",]
+GH.all.cover<-qplot(X,Suitability,data=all.cover,geom="line",colour=Expert,xlab="Grass Height (meters) for Cover")
+GH.all.cover
+
+GH.nesting.mean<-qplot(X,Suitability,data=GH_data[GH_data$Expert=="Nesting_Avg         ",],geom="line",xlab="Grass Height (meters) for Nesting")
+GH.nesting.mean
+
+GH.cover.mean<-qplot(X,Suitability,data=GH_data[GH_data$Expert=="Cover_Avg           ",],geom="line",xlab="Grass Height (meters) for Cover")
+GH.cover.mean
+
+Index<-1:3001
+GH_nesting_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GH_nesting_upper[i]=max(GH_cols$Ellis[ind],GH_cols$Dan[ind],GH_cols$Roy[ind],GH_cols$Nesting_Sally[ind])
+  }
+GH_nesting_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GH_nesting_lower[i]=min(GH_cols$Ellis[ind],GH_cols$Dan[ind],GH_cols$Roy[ind],GH_cols$Nesting_Sally[ind])
+  }
+
+GH_cover_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GH_cover_upper[i]=max(GH_cols$Ellis[ind],GH_cols$Dan[ind],GH_cols$Roy[ind],GH_cols$Cover_Sally[ind])
+  }
+GH_cover_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    GH_cover_lower[i]=min(GH_cols$Ellis[ind],GH_cols$Dan[ind],GH_cols$Roy[ind],GH_cols$Cover_Sally[ind])
+  }
+
+GH_nesting_error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=GH_nesting_lower,ymax=GH_nesting_upper))
+GH_cover_error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=GH_cover_lower,ymax=GH_cover_upper))
+
+GH.nesting.uncertainty<-GH.nesting.mean+GH_nesting_error
+GH.cover.uncertainty<-GH.cover.mean+GH_cover_error
+GH.nesting.uncertainty
+GH.cover.uncertainty
+
+GH.nesting.area<-(sum(GH_nesting_upper)-sum(GH_nesting_lower))/2.998002
+GH.nesting.area
+GH.cover.area<-(sum(GH_cover_upper)-sum(GH_cover_lower))/2.998002
+GH.cover.area
+@
+
+<<StructuralDiversityCombined>>=
+Struct.div.ellis<-curve(pgamma(x,shape=7.5,rate=.5),0,40,ylim=c(0,1),ylab="Suitability",xlab="Structural Diversity measured as Number of Species")
+
+binary<-matrix(c(0,1,0,1),2,2)
+colnames(binary)<-c("Presence","Suitability")
+binary<-as.data.frame(binary)
+binary$name<-ifelse(binary$Presence==0,binary$name<-"Absent",binary$name<-"Present")
+
+Layer.Mary.fun<-function(x){ifelse(x==1,y<-1,y<-0)}
+Layer.Mary<-plot(binary$Suitability~as.factor(binary$name),pch=16,xlab="Presence of Multilayered Vegetation in Each Acre",ylab="Suitability")
+@
+
+<<TotalCoverCombined>>=
+Winter.total.cover.ellis<-curve(dbeta(x,3,7)/2.9,0,1,ylim=c(0,1),ylab="Suitability",xlab="Percent Total Canopy Cover (Winter)")
+Summer.total.cover.ellis<-curve(dbeta(x,4,4)/2.2,0,1,ylim=c(0,1),ylab="Suitability",xlab="Percent Total Canopy Cover (Summer)")
+
+@
+
+<<ForbCoverCombined>>=
+FCX<-seq(0,1,.001)
+FCX.dat<-matrix(FCX,11011,1)
+
+FC.Mary.fun<-function(x){
+  ifelse(x<.15,y<-dbeta(x,1.1,1)*1.099001,y<-1)
+}
+FC.Mary<-FC.Mary.fun(FCX)
+FC.mary.mat<-matrix(c(rep("Mary",1001),FC.Mary),1001,2)
+
+FCA.Goodwin<-function(x)
+{ifelse(x<=.5,Y<-(.2+(dbeta(x,5,19)/6.4)),Y<-x-(x^2)-.05)
+return(Y)}
+FCval1<-FCA.Goodwin(seq(0,.5,.001))
+FCval2<-FCA.Goodwin(seq(.501,1,.001))
+FCAval<-c(FCval1,FCval2)
+FCAval.mat<-matrix(c(rep("AZ_Goodwin",1001),FCAval),1001,2)
+
+FCM.Goodwin<-(.3+dbeta(FCX,10,18.57))/4.75982
+FCM.Goodwin.mat<-matrix(c(rep("MX_Goodwin",1001),FCM.Goodwin),1001,2)
+
+FC.Fall.sd<-function(x)
+{ifelse(x<=.5,Y<-dbeta(x,30,30)/6.15469,ifelse(x>=.6,Y<-.2+(dbeta(x,30,24.54)/6.3),Y<-1))
+return(Y)}
+FC.fall1<-FC.Fall.sd(seq(0,.5,.001))
+FC.fall2<-rep(FC.Fall.sd(.501),99)
+FC.fall3<-FC.Fall.sd(seq(.6,1,.001))
+FC.fall.sd<-c(FC.fall1,FC.fall2,FC.fall3)
+FC.fall.sd.mat<-matrix(c(rep("Fall_SD",1001),FC.fall.sd),1001,2)
+
+FC.Spring.sd<-function(x)
+{ifelse(x<=.35,Y<-dbeta(x,4,4)/1.648437,ifelse(x>=.65,Y<-(dbeta(x,4,4))/1.648437,Y<-1))
+return(Y)}
+FC.spring1<-FC.Spring.sd(seq(0,.35,.001))
+FC.spring2<-rep(FC.Spring.sd(.351),299)
+FC.spring3<-FC.Spring.sd(seq(.65,1,.001))
+FC.spring.sd<-c(FC.spring1,FC.spring2,FC.spring3)
+FC.spring.sd.mat<-matrix(c(rep("Spring_SD",1001),FC.spring.sd),1001,2)
+
+FC.Sum.Roy<-dbeta(FCX,9,21)/4.784
+FC.Sum.Roy.mat<-matrix(c(rep("Summer_Roy",1001),FC.Sum.Roy),1001,2)
+
+FC.Win.Roy<-dbeta(FCX,14,9)/3.894
+FC.Win.Roy.mat<-matrix(c(rep("Winter_Roy",1001),FC.Win.Roy),1001,2)
+
+FC_AZ_SS_avg<-(FCAval+FC.spring.sd+FC.Sum.Roy+FC.Mary)/4
+FC.AZ.SS.avg.mat<-matrix(c(rep("AZ_Summer_avg",1001),FC_AZ_SS_avg),1001,2)
+
+FC_AZ_FW_avg<-(FCAval+FC.fall.sd+FC.Win.Roy+FC.Mary)/4
+FC.AZ.FW.avg.mat<-matrix(c(rep("AZ_Winter_avg",1001),FC_AZ_FW_avg),1001,2)
+
+FC_MX_SS_avg<-(FCM.Goodwin+FC.spring.sd+FC.Sum.Roy+FC.Mary)/4
+FC.MX.SS.avg.mat<-matrix(c(rep("MX_Summer_avg",1001),FC_MX_SS_avg),1001,2)
+
+FC_MX_FW_avg<-(FCM.Goodwin+FC.fall.sd+FC.Win.Roy+FC.Mary)/4
+FC.MX.FW.avg.mat<-matrix(c(rep("MX_Winter_avg",1001),FC_MX_FW_avg),1001,2)
+
+FC.all.mat<-rbind(FCAval.mat,FCM.Goodwin.mat,FC.fall.sd.mat,FC.spring.sd.mat,FC.Sum.Roy.mat,FC.Win.Roy.mat,FC.mary.mat,FC.AZ.SS.avg.mat,FC.AZ.FW.avg.mat,FC.MX.SS.avg.mat,FC.MX.FW.avg.mat)
+FC.all.dat<-matrix(c(FCX.dat,FC.all.mat),11011,3)
+colnames(FC.all.dat)<-c("X","Expert","Suitability")
+FC.all.cols<-matrix(c(FCAval,FCM.Goodwin,FC.fall.sd,FC.spring.sd,FC.Sum.Roy,FC.Win.Roy,FC.Mary),1001,7)
+colnames(FC.all.cols)<-c("AZ_Goodwin","MX_Goodwin","Fall_SD","Spring_SD","Summer_Roy","Winter_Roy","Mary")
+
+write.matrix(FC.all.dat,file="C:\\Users\\dominic\\Documents\\Work\\FC_data.csv",sep=",")
+write.matrix(FC.all.cols,file="C:\\Users\\dominic\\Documents\\Work\\FC_cols.csv",sep=",")
+FC_data<-read.csv("C:\\Users\\dominic\\Documents\\Work\\FC_data.csv")
+FC_cols<-read.csv("C:\\Users\\dominic\\Documents\\Work\\FC_cols.csv")
+
+FC.AZ.SS1<-FC_data[!FC_data$Expert=="MX_Goodwin           ",]
+FC.AZ.SS2<-FC.AZ.SS1[!FC.AZ.SS1$Expert=="MX_Summer_avg        ",]
+FC.AZ.SS3<-FC.AZ.SS2[!FC.AZ.SS2$Expert=="Winter_Roy           ",]
+FC.AZ.SS4<-FC.AZ.SS3[!FC.AZ.SS3$Expert=="AZ_Winter_avg        ",]
+FC.AZ.SS5<-FC.AZ.SS4[!FC.AZ.SS4$Expert=="MX_Winter_avg        ",]
+FC.AZ.SS<-FC.AZ.SS5[!FC.AZ.SS5$Expert=="Fall_SD              ",]
+
+FC.AZ.FW1<-FC_data[!FC_data$Expert=="MX_Goodwin           ",]
+FC.AZ.FW2<-FC.AZ.FW1[!FC.AZ.FW1$Expert=="MX_Summer_avg        ",]
+FC.AZ.FW3<-FC.AZ.FW2[!FC.AZ.FW2$Expert=="Summer_Roy           ",]
+FC.AZ.FW4<-FC.AZ.FW3[!FC.AZ.FW3$Expert=="AZ_Summer_avg        ",]
+FC.AZ.FW5<-FC.AZ.FW4[!FC.AZ.FW4$Expert=="MX_Winter_avg        ",]
+FC.AZ.FW<-FC.AZ.FW5[!FC.AZ.FW5$Expert=="Spring_SD            ",]
+
+FC.MX.SS1<-FC_data[!FC_data$Expert=="AZ_Goodwin           ",]
+FC.MX.SS2<-FC.MX.SS1[!FC.MX.SS1$Expert=="AZ_Winter_avg        ",]
+FC.MX.SS3<-FC.MX.SS2[!FC.MX.SS2$Expert=="Winter_Roy           ",]
+FC.MX.SS4<-FC.MX.SS3[!FC.MX.SS3$Expert=="AZ_Summer_avg        ",]
+FC.MX.SS5<-FC.MX.SS4[!FC.MX.SS4$Expert=="MX_Winter_avg        ",]
+FC.MX.SS<-FC.MX.SS5[!FC.MX.SS5$Expert=="Fall_SD              ",]
+
+FC.MX.FW1<-FC_data[!FC_data$Expert=="AZ_Goodwin           ",]
+FC.MX.FW2<-FC.MX.FW1[!FC.MX.FW1$Expert=="AZ_Winter_avg        ",]
+FC.MX.FW3<-FC.MX.FW2[!FC.MX.FW2$Expert=="Summer_Roy           ",]
+FC.MX.FW4<-FC.MX.FW3[!FC.MX.FW3$Expert=="AZ_Summer_avg        ",]
+FC.MX.FW5<-FC.MX.FW4[!FC.MX.FW4$Expert=="MX_Summer_avg        ",]
+FC.MX.FW<-FC.MX.FW5[!FC.MX.FW5$Expert=="Spring_SD            ",]
+
+FC.AZ.SS.plot<-qplot(X,Suitability,data=FC.AZ.SS,geom="line",colour=Expert,xlab="Proportion Forb Cover in Arizona in Spring/Summer")
+FC.AZ.SS.plot
+
+FC.AZ.FW.plot<-qplot(X,Suitability,data=FC.AZ.FW,geom="line",colour=Expert,xlab="Proportion Forb Cover in Arizona in Fall/Winter")
+FC.AZ.FW.plot
+
+FC.MX.SS.plot<-qplot(X,Suitability,data=FC.MX.SS,geom="line",colour=Expert,xlab="Proportion Forb Cover in Mexico in Spring/Summer")
+FC.MX.SS.plot
+
+FC.MX.FW.plot<-qplot(X,Suitability,data=FC.MX.FW,geom="line",colour=Expert,xlab="Proportion Forb Cover in Mexico in Spring/Summer")
+FC.MX.FW.plot
+
+FC.AZ.SS.mean<-qplot(X,Suitability,data=FC_data[FC_data$Expert=="AZ_Summer_avg        ",],geom="line",xlab="Proportion Forb Cover in Arizona in Spring/Summer")
+FC.AZ.SS.mean
+
+FC.AZ.FW.mean<-qplot(X,Suitability,data=FC_data[FC_data$Expert=="AZ_Winter_avg        ",],geom="line",xlab="Proportion Forb Cover in Arizona in Fall/Winter")
+FC.AZ.FW.mean
+
+FC.MX.SS.mean<-qplot(X,Suitability,data=FC_data[FC_data$Expert=="MX_Summer_avg        ",],geom="line",xlab="Proportion Forb Cover in Mexico in Spring/Summer")
+FC.MX.SS.mean
+
+FC.MX.FW.mean<-qplot(X,Suitability,data=FC_data[FC_data$Expert=="MX_Winter_avg        ",],geom="line",xlab="Proportion Forb Cover in Mexico in Fall/Winter")
+FC.MX.FW.mean
+
+Index<-1:1001
+FC_AZ_SS_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    FC_AZ_SS_upper[i]=max(FC_cols$AZ_Goodwin[ind],FC_cols$Spring_SD[ind],FC_cols$Summer_Roy[ind],FC_cols$Mary[ind])
+  }
+FC_AZ_SS_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    FC_AZ_SS_lower[i]=min(FC_cols$AZ_Goodwin[ind],FC_cols$Spring_SD[ind],FC_cols$Summer_Roy[ind],FC_cols$Mary[ind])
+  }
+FC_AZ_FW_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    FC_AZ_FW_upper[i]=max(FC_cols$AZ_Goodwin[ind],FC_cols$Fall_SD[ind],FC_cols$Winter_Roy[ind],FC_cols$Mary[ind])
+  }
+FC_AZ_FW_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    FC_AZ_FW_lower[i]=min(FC_cols$AZ_Goodwin[ind],FC_cols$Fall_SD[ind],FC_cols$Winter_Roy[ind],FC_cols$Mary[ind])
+  }
+FC_MX_SS_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    FC_MX_SS_upper[i]=max(FC_cols$MX_Goodwin[ind],FC_cols$Spring_SD[ind],FC_cols$Summer_Roy[ind],FC_cols$Mary[ind])
+  }
+FC_MX_SS_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    FC_MX_SS_lower[i]=min(FC_cols$MX_Goodwin[ind],FC_cols$Spring_SD[ind],FC_cols$Summer_Roy[ind],FC_cols$Mary[ind])
+  }
+FC_MX_FW_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    FC_MX_FW_upper[i]=max(FC_cols$MX_Goodwin[ind],FC_cols$Fall_SD[ind],FC_cols$Winter_Roy[ind],FC_cols$Mary[ind])
+  }
+FC_MX_FW_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    FC_MX_FW_lower[i]=min(FC_cols$MX_Goodwin[ind],FC_cols$Fall_SD[ind],FC_cols$Winter_Roy[ind],FC_cols$Mary[ind])
+  }
+AZ_SS_error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=FC_AZ_SS_lower,ymax=FC_AZ_SS_upper))
+AZ_FW_error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=FC_AZ_FW_lower,ymax=FC_AZ_FW_upper))
+MX_SS_error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=FC_MX_SS_lower,ymax=FC_MX_SS_upper))
+MX_FW_error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=FC_MX_FW_lower,ymax=FC_MX_FW_upper))
+FC_AZ_SS_uncertainty<-FC.AZ.SS.mean+AZ_SS_error
+FC_AZ_FW_uncertainty<-FC.AZ.FW.mean+AZ_FW_error
+FC_MX_SS_uncertainty<-FC.MX.SS.mean+MX_SS_error
+FC_MX_FW_uncertainty<-FC.MX.FW.mean+MX_FW_error
+
+FC_AZ_SS_uncertainty
+FC_AZ_FW_uncertainty
+FC_MX_SS_uncertainty
+FC_MX_FW_uncertainty
+
+FC.AZ.SS.area<-sum(FC_AZ_SS_upper)-sum(FC_AZ_SS_lower)
+FC.AZ.FW.area<-sum(FC_AZ_FW_upper)-sum(FC_AZ_FW_lower)
+FC.MX.SS.area<-sum(FC_MX_SS_upper)-sum(FC_MX_SS_lower)
+FC.MX.FW.area<-sum(FC_MX_FW_upper)-sum(FC_MX_FW_lower)
+
+FC.AZ.SS.area
+FC.AZ.FW.area
+FC.MX.SS.area
+FC.MX.FW.area
+@
+
+<<ShrubCoverCombined>>=
+SCX<-seq(0,1,.001)
+SCX.dat<-matrix(SCX,11011,1)
+
+SCA.Goodwin<-dbeta(SCX,5,20)/5.155
+SCA.Goodwin.mat<-matrix(c(rep("AZ_Goodwin",1001),SCA.Goodwin),1001,2)
+
+SC.Mary<-dbeta(SCX,1.5,3.5)/2.108676
+SC.mary.mat<-matrix(c(rep("Mary",1001),SC.Mary),1001,2)
+
+SCM.Goodwin<-function(x){
+  s<-ifelse(x<=.5,dbeta(x,3,7.909)/3.1,x-(x^2)-0.0157323)
+return(s)}
+SCval1<-SCM.Goodwin(seq(0,.5,.001))
+SCval2<-SCM.Goodwin(seq(.501,1,.001))
+SCval<-c(SCval1,SCval2)
+SCM.goodwin.mat<-matrix(c(rep("MX_Goodwin",1001),SCval),1001,2)
+
+SC.Dan<-dbeta(SCX,5,7.5)/2.84164
+SC.Dan.mat<-matrix(c(rep("Dan",1001),SC.Dan),1001,2)
+
+SC.Sally<-function(x)
+{ifelse(x<=.3,Y<-dbeta(x,3,3)/1.875,ifelse(x>=.6,Y<-(dbeta(x,3,3))/1.728,Y<-1))
+return(Y)}
+SC1<-SC.Sally(seq(0,.3,.001))
+SC2<-rep(SC.Sally(.301),299)
+SC3<-SC.Sally(seq(.6,1,.001))
+SC<-c(SC1,SC2,SC3)
+SC.Sally.mat<-matrix(c(rep("Sally",1001),SC),1001,2)
+
+SC.Sum.roy<-dbeta(SCX,8,58.6667)/10.3594
+SC.Sum.roy.mat<-matrix(c(rep("Summer_Roy",1001),SC.Sum.roy),1001,2)
+
+SC.Win.roy<-dbeta(SCX,9,9)/3.33847
+SC.Win.roy.mat<-matrix(c(rep("Winter_Roy",1001),SC.Win.roy),1001,2)
+
+SC.SUM.AZ.avg<-(SCA.Goodwin+SC.Dan+SC+SC.Sum.roy+SC.Mary)/5
+SC.SUM.AZ.avg.mat<-matrix(c(rep("AZ_SUM_Avg",1001),SC.SUM.AZ.avg),1001,2)
+  
+SC.Win.AZ.avg<-(SCA.Goodwin+SC.Dan+SC+SC.Win.roy+SC.Mary)/5
+SC.Win.AZ.avg.mat<-matrix(c(rep("AZ_WIN_Avg",1001),SC.Win.AZ.avg),1001,2)
+  
+SC.SUM.MX.avg<-(SCval+SC.Dan+SC+SC.Sum.roy+SC.Mary)/5
+SC.SUM.MX.avg.mat<-matrix(c(rep("MX_SUM_Avg",1001),SC.SUM.AZ.avg),1001,2)
+  
+SC.WIN.MX.avg<-(SCval+SC.Dan+SC+SC.Win.roy+SC.Mary)/5
+SC.WIN.MX.avg.mat<-matrix(c(rep("MX_WIN_Avg",1001),SC.Win.AZ.avg),1001,2)
+
+SC.all.mat<-rbind(SCM.goodwin.mat,SCA.Goodwin.mat,SC.Dan.mat,SC.Sally.mat,SC.Sum.roy.mat,SC.Win.roy.mat,SC.mary.mat,SC.SUM.AZ.avg.mat,SC.Win.AZ.avg.mat,SC.SUM.MX.avg.mat,SC.WIN.MX.avg.mat)
+SC.all.dat<-matrix(c(SCX.dat,SC.all.mat),11011,3)
+colnames(SC.all.dat)<-c("X","Expert","Suitability")
+SC.all.cols<-matrix(c(SCA.Goodwin,SCval,SC.Dan,SC,SC.Sum.roy,SC.Win.roy,SC.Mary),1001,7)
+colnames(SC.all.cols)<-c("AZ_Goodwin","MX_Goodwin","Dan","Sally","Summer_Roy","Winter_Roy","Mary")
+
+write.matrix(SC.all.dat,file="C:\\Users\\dominic\\Documents\\Work\\SC_data.csv",sep=",")
+write.matrix(SC.all.cols,file="C:\\Users\\dominic\\Documents\\Work\\SC_cols.csv",sep=",")
+SC_data<-read.csv("C:\\Users\\dominic\\Documents\\Work\\SC_data.csv")
+SC_cols<-read.csv("C:\\Users\\dominic\\Documents\\Work\\SC_cols.csv")
+
+AZ.Sum1<-SC_data[!SC_data$Expert=="MX_Goodwin           ",]
+AZ.Sum2<-AZ.Sum1[!AZ.Sum1$Expert=="Winter_Roy           ",]
+AZ.Sum3<-AZ.Sum2[!AZ.Sum2$Expert=="AZ_WIN_Avg           ",]
+AZ.Sum4<-AZ.Sum3[!AZ.Sum3$Expert=="MX_SUM_Avg           ",]
+AZ.Sum<-AZ.Sum4[!AZ.Sum4$Expert=="MX_WIN_Avg           ",]
+
+AZ.Win1<-SC_data[!SC_data$Expert=="MX_Goodwin           ",]
+AZ.Win2<-AZ.Win1[!AZ.Win1$Expert=="Summer_Roy           ",]
+AZ.Win3<-AZ.Win2[!AZ.Win2$Expert=="AZ_SUM_Avg           ",]
+AZ.Win4<-AZ.Win3[!AZ.Win3$Expert=="MX_SUM_Avg           ",]
+AZ.Win<-AZ.Win4[!AZ.Win4$Expert=="MX_WIN_Avg           ",]
+
+MX.Sum1<-SC_data[!SC_data$Expert=="AZ_Goodwin           ",]
+MX.Sum2<-MX.Sum1[!MX.Sum1$Expert=="Winter_Roy           ",]
+MX.Sum3<-MX.Sum2[!MX.Sum2$Expert=="AZ_WIN_Avg           ",]
+MX.Sum4<-MX.Sum3[!MX.Sum3$Expert=="AZ_SUM_Avg           ",]
+MX.Sum<-MX.Sum4[!MX.Sum4$Expert=="MX_WIN_Avg           ",]
+
+MX.Win1<-SC_data[!SC_data$Expert=="AZ_Goodwin           ",]
+MX.Win2<-MX.Win1[!MX.Win1$Expert=="Summer_Roy           ",]
+MX.Win3<-MX.Win2[!MX.Win2$Expert=="AZ_SUM_Avg           ",]
+MX.Win4<-MX.Win3[!MX.Win3$Expert=="MX_SUM_Avg           ",]
+MX.Win<-MX.Win4[!MX.Win4$Expert=="AZ_WIN_Avg           ",]
+
+AZ.Sum.plot<-qplot(X,Suitability,data=AZ.Sum,geom="line",colour=Expert,xlab="Proportion Shrub Cover in Arizona in Summer")
+AZ.Sum.plot
+Index<-1:1001
+SC_AZ_Sumr_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    SC_AZ_Sumr_upper[i]=max(SC_cols$AZ_Goodwin[ind],SC_cols$Dan[ind],SC_cols$Sally[ind],SC_cols$Summer_Roy[ind],SC_cols$Mary[ind])
+  }
+SC_AZ_Sumr_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    SC_AZ_Sumr_lower[i]=min(SC_cols$AZ_Goodwin[ind],SC_cols$Dan[ind],SC_cols$Sally[ind],SC_cols$Summer_Roy[ind],SC_cols$Mary[ind])
+  }
+AZ_Sum_mean<-qplot(X,Suitability,data=SC_data[SC_data$Expert=="AZ_SUM_Avg           ",],geom="line",xlab="Proportion Shrub Cover in Arizona in Summer")
+AZ_Sum_error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=SC_AZ_Sumr_lower,ymax=SC_AZ_Sumr_upper))
+AZ_Sum_uncertainty<-AZ_Sum_mean+AZ_Sum_error
+AZ_Sum_uncertainty
+
+AZ.Win.plot<-qplot(X,Suitability,data=AZ.Win,geom="line",colour=Expert,xlab="Proportion Shrub Cover in Arizona in Winter")
+AZ.Win.plot
+SC_AZ_Win_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    SC_AZ_Win_upper[i]=max(SC_cols$AZ_Goodwin[ind],SC_cols$Dan[ind],SC_cols$Sally[ind],SC_cols$Winter_Roy[ind],SC_cols$Mary[ind])
+  }
+SC_AZ_Win_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    SC_AZ_Win_lower[i]=min(SC_cols$AZ_Goodwin[ind],SC_cols$Dan[ind],SC_cols$Sally[ind],SC_cols$Winter_Roy[ind],SC_cols$Mary[ind])
+  }
+AZ_Win_mean<-qplot(X,Suitability,data=SC_data[SC_data$Expert=="AZ_WIN_Avg           ",],geom="line",xlab="Proportion Shrub Cover in Arizona in Winter")
+AZ_Win_error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=SC_AZ_Win_lower,ymax=SC_AZ_Win_upper))
+AZ_Win_uncertainty<-AZ_Win_mean+AZ_Win_error
+AZ_Win_uncertainty
+
+MX.Sum.plot<-qplot(X,Suitability,data=MX.Sum,geom="line",colour=Expert,xlab="Proportion Shrub Cover in Mexico in Summer")
+MX.Sum.plot
+SC_MX_Sumr_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    SC_MX_Sumr_upper[i]=max(SC_cols$MX_Goodwin[ind],SC_cols$Dan[ind],SC_cols$Sally[ind],SC_cols$Summer_Roy[ind],SC_cols$Mary[ind])
+  }
+SC_MX_Sumr_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    SC_MX_Sumr_lower[i]=min(SC_cols$MX_Goodwin[ind],SC_cols$Dan[ind],SC_cols$Sally[ind],SC_cols$Summer_Roy[ind],SC_cols$Mary[ind])
+  }
+MX_Sum_mean<-qplot(X,Suitability,data=SC_data[SC_data$Expert=="MX_SUM_Avg           ",],geom="line",xlab="Proportion Shrub Cover in Mexico in Summer")
+MX_Sum_error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=SC_MX_Sumr_lower,ymax=SC_MX_Sumr_upper))
+MX_Sum_uncertainty<-MX_Sum_mean+MX_Sum_error
+MX_Sum_uncertainty
+
+
+MX.Win.plot<-qplot(X,Suitability,data=MX.Win,geom="line",colour=Expert,xlab="Proportion Shrub Cover in Mexico in Winter")
+MX.Win.plot
+SC_MX_Win_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    SC_MX_Win_upper[i]=max(SC_cols$MX_Goodwin[ind],SC_cols$Dan[ind],SC_cols$Sally[ind],SC_cols$Summer_Roy[ind],SC_cols$Mary[ind])
+  }
+SC_MX_Win_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    SC_MX_Win_lower[i]=min(SC_cols$MX_Goodwin[ind],SC_cols$Dan[ind],SC_cols$Sally[ind],SC_cols$Summer_Roy[ind],SC_cols$Mary[ind])
+  }
+MX_Win_mean<-qplot(X,Suitability,data=SC_data[SC_data$Expert=="MX_WIN_Avg           ",],geom="line",xlab="Proportion Shrub Cover in Mexico in Winter")
+MX_Win_error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=SC_MX_Win_lower,ymax=SC_MX_Win_upper))
+MX_Win_uncertainty<-MX_Win_mean+MX_Win_error
+MX_Win_uncertainty
+
+SC.AZ.SUM.area<-sum(SC_AZ_Sumr_upper)-sum(SC_AZ_Sumr_lower)
+SC.AZ.WIN.area<-sum(SC_AZ_Win_upper)-sum(SC_AZ_Win_lower)
+SC.MX.SUM.area<-sum(SC_MX_Sumr_upper)-sum(SC_MX_Sumr_lower)
+SC.MX.WIN.area<-sum(SC_MX_Win_upper)-sum(SC_MX_Win_lower)
+
+SC.AZ.SUM.area
+SC.AZ.WIN.area
+SC.MX.SUM.area
+SC.MX.WIN.area
+@
+
+<<BareGroundCombined>>=
+BGX<-seq(0,1,.001)
+BGX.dat<-matrix(BGX,4004,1)
+BG.sd<-dbeta(BGX,3,9)/3.322
+BG.sd.mat<-matrix(c(rep("SD",1001),BG.sd),1001,2)
+
+BG.Mary.fun<-function(x){
+  ifelse(x<.2805743,y<-dbeta(x,3,4.5)/2,ifelse(x>.4525119,y<-dbeta(x,3,4.5)/2,y<-1))
+}
+BG.Mary<-BG.Mary.fun(BGX)
+BG.mary.mat<-matrix(c(rep("Mary",1001),BG.Mary),1001,2)
+
+BG.Roy<-dbeta(BGX,9,27)/5.571042
+BG.Roy.mat<-matrix(c(rep("Roy",1001),BG.Roy),1001,2)
+
+BG.avg<-(BG.sd+BG.Roy+BG.Mary)/3
+BG.avg.mat<-matrix(c(rep("Mean",1001),BG.avg),1001,2)
+
+all.mat<-rbind(BG.sd.mat,BG.Roy.mat,BG.mary.mat,BG.avg.mat)
+BG.dat<-matrix(c(BGX.dat,all.mat),4004,3)
+colnames(BG.dat)<-c("BG","Expert","Suitability")
+BG.cols<-matrix(c(BG.sd,BG.Roy,BG.Mary),1001,3)
+colnames(BG.cols)<-c("SD","Roy","Mary")
+
+write.matrix(BG.dat,file="C:\\Users\\dominic\\Documents\\Work\\BG_data.csv",sep=",")
+write.matrix(BG.cols,file="C:\\Users\\dominic\\Documents\\Work\\BG_cols.csv",sep=",")
+BG_data<-read.csv("C:\\Users\\dominic\\Documents\\Work\\BG_data.csv")
+BG_cols<-read.csv("C:\\Users\\dominic\\Documents\\Work\\BG_cols.csv")
+
+BG.mean.plot<-qplot(BG,Suitability,data=BG_data[BG_data$Expert=="Mean                ",],geom="line",xlab="Proportion bare ground (at surface level)")
+Index<-1:1001
+BG_upper<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    BG_upper[i]=max(BG_cols$SD[ind],BG_cols$Roy[ind],BG_cols$Mary[ind])
+  }
+BG_lower<-rep(0,length(Index))
+  for(i in 1:length(Index)){
+    ind=Index[i] #row index
+    BG_lower[i]=min(BG_cols$SD[ind],BG_cols$Roy[ind],BG_cols$Mary[ind])
+  }
+BG.error<-geom_ribbon(fill="red",alpha=.2,aes(ymin=BG_lower,ymax=BG_upper))
+BG.uncertainty<-BG.mean.plot+BG.error
+BG.uncertainty
+
+BG.area<-sum(BG_upper)-sum(BG_lower)
+BG.area
+@
+
+\end{document}
