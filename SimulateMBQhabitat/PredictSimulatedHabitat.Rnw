@@ -173,7 +173,7 @@ names(HSI.data1)<-c("x","y","Suitability","Author")
 HSIbyAuth<-S.Mary
 names(HSIbyAuth)<-"Mary_Hunicutt"
 @
-<<SallyDanHSFuunction>>=
+<<SallyDanHSFunction>>=
 GC.p.sd<-function(x){
   s<-ifelse(x<=.55,1.818182*x,dbeta(x,5,4.090909)/2.351513)
   return(s)
